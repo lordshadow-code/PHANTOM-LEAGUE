@@ -1,0 +1,481 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PHANTOM — Juega. Compite. Destaca.</title>
+  <meta name="description" content="PHANTOM: torneos de esports, equipos sin fronteras y recompensas a tu alcance.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+  <!-- ===================== HEADER ===================== -->
+  <header class="site-header">
+    <div class="container header__inner">
+      <a href="#" class="logo" aria-label="PHANTOM inicio">
+        <span class="logo__mark">⚡</span>
+        <span class="logo__text">PHANTOM</span>
+      </a>
+
+      <nav class="main-nav" aria-label="Navegación principal">
+        <ul class="main-nav__list">
+          <li><a href="#como-funciona">Cómo funciona</a></li>
+          <li><a href="#torneos">Torneos</a></li>
+          <li><a href="#comunidad">Comunidad</a></li>
+          <li><a href="#blog">Blog</a></li>
+          <li><a href="#marcas">Para marcas</a></li>
+        </ul>
+      </nav>
+
+      <a href="#" class="btn btn--primary">Abrir app</a>
+    </div>
+  </header>
+
+  <main>
+
+    <!-- ===================== HERO ===================== -->
+    <section class="hero" id="inicio">
+      <div class="container hero__inner">
+        <div class="hero__content">
+          <p class="eyebrow">Competición para todos</p>
+          <h1 class="hero__title">JUEGA. COMPITE. <span class="text-accent">DESTACA.</span></h1>
+          <p class="hero__subtitle">
+            Encuentra torneos, compite con tu equipo y gana recompensas reales.
+            Todo en un solo lugar, sin fricción.
+          </p>
+          <div class="hero__actions">
+            <a href="#" class="btn btn--primary btn--lg">Empezar ahora</a>
+            <a href="#como-funciona" class="btn btn--ghost btn--lg">Cómo funciona</a>
+          </div>
+
+          <div class="hero__meta" aria-label="Estadísticas de PHANTOM">
+            <div>
+              <span class="hero__meta-value">92K</span>
+              <span class="hero__meta-label">Jugadores</span>
+            </div>
+            <div>
+              <span class="hero__meta-value">1.8K</span>
+              <span class="hero__meta-label">Torneos</span>
+            </div>
+            <div>
+              <span class="hero__meta-value">24/7</span>
+              <span class="hero__meta-label">Live</span>
+            </div>
+          </div>
+        </div>
+
+        <figure class="hero__visual">
+          <img src="images/trofeo-neon-arena.svg" alt="Trofeo futurista de PHANTOM Arena - Open Cup" loading="eager">
+          <figcaption class="hero__badge">
+            <span class="hero__badge-title">PHANTOM Arena</span>
+            <span class="hero__badge-sub">Open Cup</span>
+          </figcaption>
+        </figure>
+      </div>
+
+      <!-- Claims / features -->
+      <div class="container">
+        <ul class="claims">
+          <li class="claim">
+            <span class="claim__icon">🏆</span>
+            <span class="claim__label">Competición para todos</span>
+          </li>
+          <li class="claim">
+            <span class="claim__icon">🌐</span>
+            <span class="claim__label">Equipos sin fronteras</span>
+          </li>
+          <li class="claim">
+            <span class="claim__icon">💎</span>
+            <span class="claim__label">Recompensas a tu alcance</span>
+          </li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- ===================== 01 · ENTRAR ===================== -->
+    <section class="entrar" id="como-funciona">
+      <div class="container entrar__inner">
+        <div class="section-lead">
+          <span class="step">01</span>
+          <h2>Entra a tu manera.</h2>
+          <p>
+            Crea tu perfil en segundos con tu cuenta social o conecta tu cartera.
+            Sin formularios eternos, sin barreras.
+          </p>
+        </div>
+
+        <div class="card card--auth">
+          <h3 class="card__title">Tu partida empieza aquí</h3>
+          <form class="auth-form">
+            <button type="button" class="btn btn--primary btn--block">
+              Continuar con cuenta social
+            </button>
+            <button type="button" class="btn btn--outline btn--block">
+              Conectar wallet
+            </button>
+          </form>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===================== 02 · ARENA + RETO ===================== -->
+    <section class="arena" id="torneos">
+      <div class="container arena__grid">
+
+        <!-- Elige tu arena -->
+        <div class="arena__block">
+          <h2>Elige tu arena</h2>
+          <p class="muted">Explora entornos y encuentra tu próximo reto.</p>
+
+          <ul class="filters" role="tablist" aria-label="Filtrar torneos">
+            <li><button class="chip chip--active" role="tab" aria-selected="true">Todos</button></li>
+            <li><button class="chip" role="tab" aria-selected="false">Por equipos</button></li>
+            <li><button class="chip" role="tab" aria-selected="false">Individual</button></li>
+          </ul>
+
+          <div class="arena-cards">
+            <article class="arena-card">
+              <img src="images/neon-arena.svg" alt="Ciudad futurista iluminada para PHANTOM Arena">
+              <h3>PHANTOM Arena</h3>
+            </article>
+            <article class="arena-card">
+              <img src="images/drift-district.svg" alt="Coche de carreras en pista nocturna para Drift District">
+              <h3>Drift District</h3>
+            </article>
+          </div>
+        </div>
+
+        <!-- Encuentra tu próximo reto -->
+        <div class="arena__block">
+          <h2>Encuentra tu próximo reto</h2>
+          <p class="muted">Explora torneos activos y revisa las reglas antes de saltar.</p>
+
+          <div class="reward-callout">
+            <p class="reward-callout__text">¡Bien jugado, <strong>Nova</strong>!</p>
+            <button class="btn btn--primary btn--sm">Reclamar recompensa</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tu habilidad merece más -->
+      <div class="container split">
+        <div class="split__text">
+          <h2>Tu habilidad merece más</h2>
+          <p>
+            Cada posición en la clasificación cuenta. Sube puestos, completa retos
+            y reclama recompensas reales por tu rendimiento.
+          </p>
+        </div>
+        <div class="split__visual">
+          <img src="images/recompensas.svg" alt="Panel de recompensas y clasificación">
+        </div>
+      </div>
+
+      <!-- El siguiente nivel se juega en equipo -->
+      <div class="container split split--reverse">
+        <div class="split__text">
+          <h2>El siguiente nivel se juega en equipo</h2>
+          <p>Invita a tus amigos, crea identidades y compite con roles definidos.</p>
+          <ul class="feature-list">
+            <li>
+              <span class="feature-list__icon">🔗</span>
+              <div>
+                <strong>Invitaciones en un enlace</strong>
+                <p>Suma a tu equipo con un solo click, sin trámites.</p>
+              </div>
+            </li>
+            <li>
+              <span class="feature-list__icon">👥</span>
+              <div>
+                <strong>Perfiles y roles para cada jugador</strong>
+                <p>Define capitanes, suplentes y estrategias desde el primer día.</p>
+              </div>
+            </li>
+          </ul>
+          <a href="#" class="btn btn--primary btn--lg">Crear mi equipo</a>
+        </div>
+        <div class="split__visual">
+          <img src="images/midnight-crew.svg" alt="Soldados futuristas en un túnel con neón, interfaz del equipo Midnight Crew">
+        </div>
+      </div>
+    </section>
+
+    <!-- ===================== COMUNIDAD ===================== -->
+    <section class="comunidad" id="comunidad">
+      <div class="container comunidad__grid">
+        <div class="comunidad__text">
+          <h2>Tu gente está aquí.</h2>
+          <p>
+            Encuentra compañeros de equipo, comparte estrategias y forma parte
+            de una comunidad que vive el juego.
+          </p>
+          <a href="#" class="btn btn--primary btn--lg">
+            <span class="icon-discord">💬</span> Unirme a Discord
+          </a>
+        </div>
+
+        <div class="chat" role="log" aria-label="Chat de la comunidad">
+          <article class="chat__msg">
+            <span class="chat__avatar" style="--c:#8b5cf6">L</span>
+            <div>
+              <p class="chat__author">Luna <time>12:04</time></p>
+              <p>¿Alguien busca equipo para el torneo del sábado?</p>
+            </div>
+          </article>
+          <article class="chat__msg">
+            <span class="chat__avatar" style="--c:#22d3ee">O</span>
+            <div>
+              <p class="chat__author">Orbit <time>12:05</time></p>
+              <p>Yo tengo hueco en la escuadra, faltamos un DPS.</p>
+            </div>
+          </article>
+          <article class="chat__msg">
+            <span class="chat__avatar" style="--c:#34d399">K</span>
+            <div>
+              <p class="chat__author">Kira <time>12:06</time></p>
+              <p>¡Cuenta conmigo! Me uno en un minuto.</p>
+            </div>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===================== ORGANIZAR TORNEO ===================== -->
+    <section class="organizar" id="organizadores">
+      <div class="container">
+        <header class="section-head">
+          <h2>Tú montas el torneo. PHANTOM conecta el resto.</h2>
+        </header>
+
+        <div class="organizar__grid">
+          <!-- Leaderboard -->
+          <div class="card leaderboard">
+            <h3 class="card__title">Neon Arena — Open Cup</h3>
+            <table class="leaderboard__table">
+              <thead>
+                <tr>
+                  <th scope="col">#</th>
+                  <th scope="col">Equipo</th>
+                  <th scope="col">Pts.</th>
+                  <th scope="col">Estado</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td data-label="#">1</td>
+                  <td data-label="Equipo">Midnight Crew</td>
+                  <td data-label="Pts.">2.480</td>
+                  <td data-label="Estado"><span class="tag tag--live">En vivo</span></td>
+                </tr>
+                <tr>
+                  <td data-label="#">2</td>
+                  <td data-label="Equipo">Pixel Wits</td>
+                  <td data-label="Pts.">2.190</td>
+                  <td data-label="Estado"><span class="tag">Clasifica</span></td>
+                </tr>
+                <tr>
+                  <td data-label="#">3</td>
+                  <td data-label="Equipo">Void Run</td>
+                  <td data-label="Pts.">1.940</td>
+                  <td data-label="Estado"><span class="tag">Clasifica</span></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <!-- Features organizador -->
+          <div class="organizar__features">
+            <a href="#" class="btn btn--primary btn--lg">Organizar un torneo</a>
+            <ul class="feature-list">
+              <li>
+                <span class="feature-list__icon">⚙️</span>
+                <div>
+                  <strong>Clasificación automática</strong>
+                  <p>Los resultados se actualizan solos, sin hojas de cálculo.</p>
+                </div>
+              </li>
+              <li>
+                <span class="feature-list__icon">💰</span>
+                <div>
+                  <strong>Pagos y recompensas</strong>
+                  <p>Gestiona premios y cobros de forma segura.</p>
+                </div>
+              </li>
+              <li>
+                <span class="feature-list__icon">🧩</span>
+                <div>
+                  <strong>Tus reglas, tu formato</strong>
+                  <p>Define brackets, rondas y normas a tu medida.</p>
+                </div>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===================== MENOS DUDAS + FAQ ===================== -->
+    <section class="faq" id="faq">
+      <div class="container">
+        <header class="section-head">
+          <h2>Menos dudas. Más juego.</h2>
+        </header>
+
+        <div class="faq__cards">
+          <article class="faq-card">
+            <img src="images/icono-mando.svg" alt="" aria-hidden="true">
+            <h3>Juega sin límites</h3>
+            <p>Compite en múltiples títulos desde una sola cuenta.</p>
+          </article>
+          <article class="faq-card">
+            <img src="images/icono-cubo.svg" alt="" aria-hidden="true">
+            <h3>Formatos flexibles</h3>
+            <p>Individual, por equipos o por invitación. Tú decides.</p>
+          </article>
+          <article class="faq-card">
+            <img src="images/icono-wallet.svg" alt="" aria-hidden="true">
+            <h3>Cobra tus premios</h3>
+            <p>Recompensas y pagos gestionados de forma transparente.</p>
+          </article>
+        </div>
+
+        <header class="section-head section-head--sm">
+          <h2>Despejamos tus dudas.</h2>
+        </header>
+
+        <div class="accordion">
+          <details class="accordion__item" open>
+            <summary>¿Qué es PHANTOM?</summary>
+            <p>Una plataforma de torneos de esports donde juegas, compites y ganas recompensas reales.</p>
+          </details>
+          <details class="accordion__item">
+            <summary>¿Necesito pagar para jugar?</summary>
+            <p>No. Puedes empezar gratis y unirte a torneos abiertos sin coste.</p>
+          </details>
+          <details class="accordion__item">
+            <summary>¿Cómo funcionan los equipos?</summary>
+            <p>Creas un equipo, invitas con un enlace y defines roles para cada jugador.</p>
+          </details>
+          <details class="accordion__item">
+            <summary>¿Cómo cobro mis recompensas?</summary>
+            <p>Desde tu panel, con métodos de pago gestionados por la plataforma.</p>
+          </details>
+        </div>
+      </div>
+
+      <!-- CTA marcas -->
+      <div class="container">
+        <div class="cta-brands">
+          <div class="cta-brands__text">
+            <h2>Tu universo. Una nueva forma de competir.</h2>
+            <p>Lleva tu marca, comunidad o liga al siguiente nivel con PHANTOM.</p>
+          </div>
+          <div class="cta-brands__icons" aria-hidden="true">
+            <span class="cta-brands__icon">{ }</span>
+            <span class="cta-brands__icon">🔌</span>
+          </div>
+          <a href="#" class="btn btn--primary btn--lg">Hablemos</a>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ===================== FOOTER ===================== -->
+  <footer class="site-footer" id="marcas">
+    <div class="container">
+
+      <!-- Suscripción -->
+      <div class="newsletter">
+        <div class="newsletter__text">
+          <p class="eyebrow">No te quedes fuera /</p>
+          <h2>El próximo reto, directo a tu correo.</h2>
+          <p class="muted">Nuevos torneos, guías y novedades de PHANTOM. Sin ruido extra.</p>
+        </div>
+
+        <form class="newsletter__form" action="#" method="post" novalidate>
+          <div class="newsletter__row">
+            <label class="sr-only" for="email">Tu correo electrónico</label>
+            <input type="email" id="email" name="email" placeholder="tucorreo.com" required>
+            <button type="submit" class="btn btn--primary">Suscribirme</button>
+          </div>
+          <label class="checkbox">
+            <input type="checkbox" required>
+            <span>
+              Acepto la política de privacidad y recibir novedades de PHANTOM.
+              Puedo darme de baja cuando quiera.
+            </span>
+          </label>
+        </form>
+      </div>
+
+      <!-- Marca + enlaces -->
+      <div class="footer__main">
+        <div class="footer__brand">
+          <a href="#" class="logo" aria-label="PHANTOM inicio">
+            <span class="logo__mark">⚡</span>
+            <span class="logo__text">PHANTOM</span>
+          </a>
+          <p class="muted">Un punto de encuentro para quienes viven el juego.</p>
+          <ul class="social">
+            <li><a href="#" aria-label="Discord">💬</a></li>
+            <li><a href="#" aria-label="X / Twitter">𝕏</a></li>
+            <li><a href="#" aria-label="Instagram">📷</a></li>
+          </ul>
+        </div>
+
+        <nav class="footer__nav" aria-label="Enlaces del pie">
+          <div class="footer__col">
+            <h3>Plataforma</h3>
+            <ul>
+              <li><a href="#">Explorar torneos</a></li>
+              <li><a href="#">Cómo funciona</a></li>
+              <li><a href="#">Rankings</a></li>
+              <li><a href="#">Blog</a></li>
+            </ul>
+          </div>
+          <div class="footer__col">
+            <h3>Compatibilidad</h3>
+            <ul>
+              <li><a href="#">Discord</a></li>
+              <li><a href="#">Web3 / Wallet</a></li>
+              <li><a href="#">Móvil</a></li>
+              <li><a href="#">Navegador</a></li>
+            </ul>
+          </div>
+          <div class="footer__col">
+            <h3>Colabora</h3>
+            <ul>
+              <li><a href="#">Organizadores</a></li>
+              <li><a href="#">Para marcas</a></li>
+              <li><a href="#">Prensa</a></li>
+              <li><a href="#">Contacto</a></li>
+            </ul>
+          </div>
+        </nav>
+      </div>
+
+      <!-- Claim final -->
+      <p class="footer__claim">NOS VEMOS EN EL <span class="text-accent">JUEGO.</span></p>
+
+      <!-- Legal -->
+      <div class="footer__legal">
+        <p>© 2025 PHANTOM. Elixir de plata.</p>
+        <ul>
+          <li><a href="#">Online sin fronteras</a></li>
+          <li><a href="#">Privacidad</a></li>
+          <li><a href="#">Términos</a></li>
+          <li><a href="#">Cookies</a></li>
+        </ul>
+        <span class="lang">🌐 ES · Español</span>
+      </div>
+    </div>
+  </footer>
+
+</body>
+</html>
+```
+
+
