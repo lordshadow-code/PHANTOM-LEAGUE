@@ -37,7 +37,7 @@ body::before{
 }
 img{display:block;max-width:100%;height:auto}
 a{color:inherit;text-decoration:none}
-button,input{font:inherit}
+button,input,textarea{font:inherit}
 button{cursor:pointer;border:0;background:none;color:inherit}
 ul{list-style:none}
 main{overflow:hidden;position:relative;z-index:1}
@@ -132,21 +132,8 @@ h3{font-size:1.15rem}
 .auth-form{display:flex;flex-direction:column;gap:.9rem}
 
 .arena{padding:4rem 0 3rem}
-.arena__grid{display:grid;grid-template-columns:1.3fr .7fr;gap:2rem}
 .arena__block > h2,.split__text h2,.comunidad__text h2,.section-head h2,.faq__cards h3,.newsletter__text h2,.cta-brands__text h2{margin-bottom:.7rem}
 .muted{color:var(--muted)}
-.filters{display:flex;gap:.7rem;flex-wrap:wrap;margin:1.2rem 0 1.5rem}
-.chip{
-  border:1px solid var(--border);padding:.5rem 1rem;border-radius:999px;
-  font-size:.82rem;color:var(--muted);transition:border-color .2s ease, color .2s ease, background .2s ease;
-}
-.chip:hover{border-color:var(--accent-soft);color:var(--text)}
-.chip--active{background:linear-gradient(135deg,#8b5cf6,#6d28d9);border-color:transparent;color:#fff}
-.arena-cards{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:1rem}
-.arena-card{overflow:hidden;border:1px solid var(--border);border-radius:var(--radius);background:var(--surface);transition:transform .25s ease,border-color .25s ease,box-shadow .25s ease}
-.arena-card:hover{transform:translateY(-4px);border-color:var(--accent-soft);box-shadow:0 24px 44px -28px rgba(139,92,246,.8)}
-.arena-card img{width:100%;aspect-ratio:4/3;object-fit:cover;background:#0c1220}
-.arena-card h3{padding:1rem}
 .reward-callout{
   display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:1rem;
   padding:1.2rem 1.3rem;margin-top:1.5rem;border-radius:var(--radius);
@@ -167,6 +154,28 @@ h3{font-size:1.15rem}
 }
 .feature-list strong{display:block;margin-bottom:.2rem}
 .feature-list p{color:var(--muted);font-size:.9rem}
+.team-form{display:flex;flex-direction:column;gap:.65rem;margin-top:1.5rem;max-width:34rem}
+.team-form label,.team-list-section h3{font-size:.9rem;font-weight:700}
+.team-form input,.team-form textarea,.team-form select{
+  width:100%;padding:.8rem 1rem;border:1px solid var(--border);border-radius:14px;
+  background:rgba(15,23,42,.7);color:var(--text);
+}
+.team-form textarea{resize:vertical}
+.team-form input:focus,.team-form textarea:focus,.team-form select:focus{outline:2px solid var(--accent-soft);outline-offset:2px}
+.team-form__help,.team-form__status{font-size:.82rem}
+.team-form__status{min-height:1.4em;color:var(--accent-soft)}
+.team-form button{align-self:flex-start;margin-top:.35rem}
+.team-management{align-items:start}
+.team-list-section{
+  padding:1.5rem;border:1px solid var(--border);border-radius:var(--radius-lg);
+  background:linear-gradient(180deg,rgba(18,26,45,.9),rgba(11,17,28,.86));
+}
+.team-list{display:grid;gap:.75rem;margin-top:.75rem}
+.team-list__item{
+  padding:1rem;border:1px solid var(--border);border-radius:16px;background:rgba(18,26,45,.65);
+}
+.team-list__item p{margin-top:.25rem;color:var(--muted);font-size:.9rem}
+.team-list__empty{font-size:.9rem}
 
 .comunidad{padding:4rem 0;border-block:1px solid var(--border);background:rgba(11,18,29,.7)}
 .comunidad__grid{display:grid;grid-template-columns:1fr 1.1fr;gap:2rem;align-items:center}
@@ -265,7 +274,7 @@ h3{font-size:1.15rem}
 .lang{white-space:nowrap}
 
 @media (max-width: 980px){
-  .hero__inner,.entrar__inner,.arena__grid,.comunidad__grid,.newsletter,.footer__main,.organizar__grid,.cta-brands{grid-template-columns:1fr;}
+  .hero__inner,.entrar__inner,.comunidad__grid,.newsletter,.footer__main,.organizar__grid,.cta-brands{grid-template-columns:1fr;}
   .cta-brands{display:grid}
   .main-nav{display:none}
   .hero__title{max-width:none}
@@ -281,10 +290,9 @@ h3{font-size:1.15rem}
   .hero__actions,.newsletter__row{flex-direction:column;align-items:stretch}
   .hero__badge{position:static;margin-top:1rem}
   .hero__visual{min-height:auto}
-  .claims,.arena-cards,.footer__nav{grid-template-columns:1fr}
+  .claims,.footer__nav{grid-template-columns:1fr}
   .split{grid-template-columns:1fr}
   .footer__legal{flex-direction:column;align-items:flex-start}
   .newsletter{padding:1.3rem}
   .card,.cta-brands,.newsletter{border-radius:20px}
 }
-

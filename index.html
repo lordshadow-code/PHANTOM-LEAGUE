@@ -27,7 +27,6 @@
         </ul>
       </nav>
 
-      <a href="#" class="btn btn--primary">Abrir app</a>
     </div>
   </header>
 
@@ -93,45 +92,8 @@
 
     <!-- ===================== 02 · ARENA + RETO ===================== -->
     <section class="arena" id="torneos">
-      <div class="container arena__grid">
-
-        <!-- Elige tu arena -->
-        <div class="arena__block">
-          <h2>Elige tu arena</h2>
-          <p class="muted">Explora entornos y encuentra tu próximo reto.</p>
-
-          <ul class="filters" role="tablist" aria-label="Filtrar torneos">
-            <li><button class="chip chip--active" role="tab" aria-selected="true">Todos</button></li>
-            <li><button class="chip" role="tab" aria-selected="false">Por equipos</button></li>
-            <li><button class="chip" role="tab" aria-selected="false">Individual</button></li>
-          </ul>
-
-          <div class="arena-cards">
-            <article class="arena-card">
-              <img src="images/neon-arena.svg" alt="Ciudad futurista iluminada para PHANTOM Arena">
-              <h3>PHANTOM Arena</h3>
-            </article>
-            <article class="arena-card">
-              <img src="images/drift-district.svg" alt="Coche de carreras en pista nocturna para Drift District">
-              <h3>Drift District</h3>
-            </article>
-          </div>
-        </div>
-
-        <!-- Encuentra tu próximo reto -->
-        <div class="arena__block">
-          <h2>Encuentra tu próximo reto</h2>
-          <p class="muted">Explora torneos activos y revisa las reglas antes de saltar.</p>
-
-          <div class="reward-callout">
-            <p class="reward-callout__text">¡Bien jugado, <strong>Nova</strong>!</p>
-            <button class="btn btn--primary btn--sm">Reclamar recompensa</button>
-          </div>
-        </div>
-      </div>
-
       <!-- El siguiente nivel se juega en equipo -->
-      <div class="container split split--reverse">
+      <div class="container split team-management">
         <div class="split__text">
           <h2>El siguiente nivel se juega en equipo</h2>
           <p>Invita a tus amigos, crea identidades y compite con roles definidos.</p>
@@ -151,10 +113,27 @@
               </div>
             </li>
           </ul>
-          <a href="#" class="btn btn--primary btn--lg">Crear mi equipo</a>
+          <form class="team-form" id="team-form">
+            <label for="team-name">Nombre del equipo</label>
+            <input id="team-name" name="team-name" type="text" maxlength="60" required>
+
+            <label for="team-members">Integrantes</label>
+            <textarea id="team-members" name="team-members" rows="3" maxlength="300" aria-describedby="team-members-help" required></textarea>
+            <p class="team-form__help muted" id="team-members-help">Separa los nombres con comas o saltos de línea.</p>
+
+            <label for="team-captain">Capitán</label>
+            <select id="team-captain" name="team-captain" required disabled>
+              <option value="">Añade integrantes para elegir un capitán</option>
+            </select>
+
+            <button class="btn btn--primary btn--lg" type="submit">Crear mi equipo</button>
+            <p class="team-form__status" id="team-status" role="status" aria-live="polite"></p>
+          </form>
+
         </div>
-        <div class="split__visual">
-          <img src="images/midnight-crew.svg" alt="Soldados futuristas en un túnel con neón, interfaz del equipo Midnight Crew">
+        <div class="team-list-section">
+          <h3>Tus equipos</h3>
+          <ul class="team-list" id="team-list"></ul>
         </div>
       </div>
     </section>
@@ -430,6 +409,145 @@
     </div>
   </footer>
 
+  <script>
+    (() => {
+      const storageKey = "phantom-teams";
+      const form = document.getElementById("team-form");
+      const teamNameInput = document.getElementById("team-name");
+      const teamMembersInput = document.getElementById("team-members");
+      const teamCaptainInput = document.getElementById("team-captain");
+      const teamList = document.getElementById("team-list");
+      const status = document.getElementById("team-status");
+      let teams;
+
+      function isTeam(value) {
+        return value
+          && typeof value.name === "string"
+          && Array.isArray(value.members)
+          && value.members.every((member) => typeof member === "string")
+          && (value.captain === undefined || typeof value.captain === "string");
+      }
+
+      function getMembers() {
+        return [...new Set(teamMembersInput.value
+          .split(/[,\n]/)
+          .map((member) => member.trim())
+          .filter(Boolean))];
+      }
+
+      function updateCaptainOptions() {
+        const selectedCaptain = teamCaptainInput.value;
+        const members = getMembers();
+        teamCaptainInput.replaceChildren();
+
+        const placeholder = document.createElement("option");
+        placeholder.value = "";
+        placeholder.textContent = members.length
+          ? "Selecciona al capitán"
+          : "Añade integrantes para elegir un capitán";
+        teamCaptainInput.append(placeholder);
+        members.forEach((member) => {
+          const option = document.createElement("option");
+          option.value = member;
+          option.textContent = member;
+          teamCaptainInput.append(option);
+        });
+        teamCaptainInput.disabled = members.length === 0;
+        teamCaptainInput.value = members.includes(selectedCaptain) ? selectedCaptain : "";
+      }
+
+      function renderTeams() {
+        teamList.replaceChildren();
+
+        if (teams.length === 0) {
+          const emptyMessage = document.createElement("li");
+          emptyMessage.className = "team-list__empty muted";
+          emptyMessage.textContent = "Aún no tienes equipos guardados.";
+          teamList.append(emptyMessage);
+          return;
+        }
+
+        teams.forEach((team) => {
+          const item = document.createElement("li");
+          item.className = "team-list__item";
+
+          const name = document.createElement("strong");
+          name.textContent = team.name;
+          const members = document.createElement("p");
+          members.textContent = team.members.join(", ");
+          const captain = document.createElement("p");
+          captain.textContent = `Capitán: ${team.captain || "Sin asignar"}`;
+
+          item.append(name, members, captain);
+          teamList.append(item);
+        });
+      }
+
+      try {
+        const savedTeams = localStorage.getItem(storageKey);
+        teams = savedTeams === null ? [] : JSON.parse(savedTeams);
+        if (!Array.isArray(teams) || !teams.every(isTeam)) {
+          throw new Error("Los datos guardados no tienen un formato válido.");
+        }
+        renderTeams();
+        updateCaptainOptions();
+      } catch (error) {
+        status.textContent = "No se pudieron cargar los equipos guardados en este navegador.";
+        form.querySelector('button[type="submit"]').disabled = true;
+        console.error("No se pudieron cargar los equipos:", error);
+        return;
+      }
+
+      form.addEventListener("submit", (event) => {
+        event.preventDefault();
+        const name = teamNameInput.value.trim();
+        const members = getMembers();
+        const captain = teamCaptainInput.value;
+
+        if (members.length === 0) {
+          status.textContent = "Añade al menos un integrante para crear el equipo.";
+          teamMembersInput.focus();
+          return;
+        }
+
+        if (!members.includes(captain)) {
+          status.textContent = "Selecciona como capitán a uno de los integrantes.";
+          teamCaptainInput.focus();
+          return;
+        }
+
+        const updatedTeams = [...teams, { name, members, captain }];
+        try {
+          localStorage.setItem(storageKey, JSON.stringify(updatedTeams));
+        } catch (error) {
+          status.textContent = "No se pudo guardar el equipo en este navegador.";
+          console.error("No se pudo guardar el equipo:", error);
+          return;
+        }
+
+        teams = updatedTeams;
+        renderTeams();
+        form.reset();
+        updateCaptainOptions();
+
+        try {
+          const file = new Blob([JSON.stringify(teams, null, 2)], { type: "application/json" });
+          const downloadUrl = URL.createObjectURL(file);
+          const downloadLink = document.createElement("a");
+          downloadLink.href = downloadUrl;
+          downloadLink.download = "equipos.json";
+          downloadLink.click();
+          setTimeout(() => URL.revokeObjectURL(downloadUrl), 1000);
+          status.textContent = "Equipo guardado y documento equipos.json descargado.";
+        } catch (error) {
+          status.textContent = "El equipo se guardó en este navegador, pero no se pudo descargar equipos.json.";
+          console.error("No se pudo descargar el documento de equipos:", error);
+        }
+      });
+
+      teamMembersInput.addEventListener("input", updateCaptainOptions);
+    })();
+  </script>
 </body>
 </html>
 ```
