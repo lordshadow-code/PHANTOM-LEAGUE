@@ -412,6 +412,7 @@
   <script>
     (() => {
       const storageKey = "phantom-teams";
+      const notificationEndpoint = "";
       const form = document.getElementById("team-form");
       const teamNameInput = document.getElementById("team-name");
       const teamMembersInput = document.getElementById("team-members");
@@ -498,7 +499,7 @@
         return;
       }
 
-      form.addEventListener("submit", (event) => {
+      form.addEventListener("submit", async (event) => {
         event.preventDefault();
         const name = teamNameInput.value.trim();
         const members = getMembers();
@@ -516,12 +517,42 @@
           return;
         }
 
-        const updatedTeams = [...teams, { name, members, captain }];
+        const team = { name, members, captain };
+        const submitButton = form.querySelector('button[type="submit"]');
+        submitButton.disabled = true;
+
+        if (notificationEndpoint) {
+          status.textContent = "Enviando el registro...";
+          try {
+            const response = await fetch(notificationEndpoint, {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify(team)
+            });
+            if (!response.ok) {
+              throw new Error(`El servicio de notificaciones respondió con ${response.status}.`);
+            }
+          } catch (error) {
+            status.textContent = "No se pudo enviar el equipo. No se registró; revisa la conexión e inténtalo de nuevo.";
+            console.error("No se pudo enviar la notificación del equipo:", error);
+            submitButton.disabled = false;
+            return;
+          }
+        }
+
+        const updatedTeams = [...teams, team];
         try {
           localStorage.setItem(storageKey, JSON.stringify(updatedTeams));
         } catch (error) {
-          status.textContent = "No se pudo guardar el equipo en este navegador.";
+          status.textContent = notificationEndpoint
+            ? "La notificación se envió, pero no se pudo guardar el equipo en este navegador."
+            : "No se pudo guardar el equipo en este navegador.";
           console.error("No se pudo guardar el equipo:", error);
+          if (notificationEndpoint) {
+            form.reset();
+            updateCaptainOptions();
+          }
+          submitButton.disabled = false;
           return;
         }
 
@@ -529,6 +560,7 @@
         renderTeams();
         form.reset();
         updateCaptainOptions();
+        submitButton.disabled = false;
 
         try {
           const file = new Blob([JSON.stringify(teams, null, 2)], { type: "application/json" });
@@ -538,9 +570,13 @@
           downloadLink.download = "equipos.json";
           downloadLink.click();
           setTimeout(() => URL.revokeObjectURL(downloadUrl), 1000);
-          status.textContent = "Equipo guardado y documento equipos.json descargado.";
+          status.textContent = notificationEndpoint
+            ? "Equipo registrado y notificación enviada. Documento equipos.json descargado."
+            : "Equipo guardado solo en este navegador y documento equipos.json descargado. El envío de notificaciones aún no está configurado.";
         } catch (error) {
-          status.textContent = "El equipo se guardó en este navegador, pero no se pudo descargar equipos.json.";
+          status.textContent = notificationEndpoint
+            ? "Equipo registrado y notificación enviada, pero no se pudo descargar equipos.json."
+            : "El equipo se guardó en este navegador, pero no se pudo descargar equipos.json. El envío de notificaciones aún no está configurado.";
           console.error("No se pudo descargar el documento de equipos:", error);
         }
       });
