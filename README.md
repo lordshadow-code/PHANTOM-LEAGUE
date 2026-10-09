@@ -1,33 +1,41 @@
 # PHANTOM
 
-## Notificaciones de registro de equipos
+## Equipos e invitaciones
 
-La página estática puede guardar equipos en el navegador, pero ese almacenamiento no es compartido entre visitantes. Para enviar una notificación por cada equipo nuevo a `juanojeda0219@gmail.com`, se incluye la función Supabase Edge `notify-team-registration`, que entrega el mensaje a través de Resend. Las claves privadas se configuran únicamente como secretos de Supabase.
+Los equipos nuevos se comparten entre dispositivos mediante Supabase. Cada equipo recibe un enlace único para invitar integrantes: al abrirlo, la persona escribe su nombre y se incorpora al equipo compartido. Cada alta de equipo y cada nuevo integrante también puede generar un correo a `juanojeda0219@gmail.com`.
 
-### Configuración
+La página sigue funcionando en modo local si no se configura `notificationEndpoint`, pero en ese modo las invitaciones compartidas no están disponibles.
+
+### Configuración de Supabase y Resend
 
 1. Crea un proyecto en Supabase y una cuenta en Resend. Verifica en Resend el dominio que usarás como remitente.
-2. Instala e inicia sesión en Supabase CLI, vincula el proyecto y configura los secretos:
+2. Instala Supabase CLI, inicia sesión y vincula el proyecto. Desde la raíz del repositorio, aplica la migración que crea la tabla compartida y la operación segura para unirse:
 
    ```powershell
    supabase login
    supabase link --project-ref <PROJECT_REF>
-   supabase secrets set RESEND_API_KEY=<RESEND_API_KEY> RESEND_FROM_EMAIL="PHANTOM <noreply@tu-dominio-verificado.com>" ALLOWED_ORIGIN=https://lordshadow-code.github.io
+   supabase db push
+   ```
+
+3. En **Supabase → Project Settings → API**, copia la clave `service_role` y configúrala como secreto (nunca la pongas en el JavaScript del sitio ni la publiques):
+
+   ```powershell
+   supabase secrets set SUPABASE_SERVICE_ROLE_KEY=<SERVICE_ROLE_KEY> RESEND_API_KEY=<RESEND_API_KEY> RESEND_FROM_EMAIL="PHANTOM <noreply@tu-dominio-verificado.com>" ALLOWED_ORIGIN=https://lordshadow-code.github.io
    supabase functions deploy notify-team-registration
    ```
 
-   Usa la URL de origen exacta de GitHub Pages si difiere de `https://lordshadow-code.github.io`. `ALLOWED_ORIGIN` es el origen (esquema y dominio), no incluye la ruta `/PHANTOM-LEAGUE/`.
-3. En `index.html`, asigna a `notificationEndpoint` la URL de la función desplegada:
+   `SUPABASE_URL` lo proporciona Supabase al ejecutar la función. `ALLOWED_ORIGIN` debe ser el origen exacto del sitio publicado (esquema y dominio, sin `/PHANTOM-LEAGUE/`).
+4. En `index.html`, asigna a `notificationEndpoint` la URL de la función desplegada:
 
    ```js
    const notificationEndpoint = "https://<PROJECT_REF>.supabase.co/functions/v1/notify-team-registration";
    ```
 
-4. Publica los cambios en GitHub Pages. Envía un equipo de prueba y confirma que llega el correo. Si la URL no está configurada, el formulario sigue guardando localmente y avisa que no se enviaron notificaciones.
+5. Publica los cambios en GitHub Pages. Crea un equipo de prueba, copia el enlace desde la lista y ábrelo en una ventana/dispositivo distinto para comprobar que el nuevo integrante se comparte.
 
-La función valida los datos recibidos, restringe los orígenes del navegador y no expone la clave de Resend en el sitio. La restricción de origen no evita solicitudes directas automatizadas; antes de aceptar registros públicos, agrega protección contra spam (por ejemplo, Cloudflare Turnstile) y límites de envío en tu cuenta de correo.
+La tabla tiene Row Level Security habilitado y no permite acceso público directo. La función valida los datos y realiza la unión en una transacción protegida para evitar altas duplicadas por enlaces compartidos simultáneamente. El enlace es una invitación transferible: quien lo posea puede intentar unirse. CORS no sustituye la protección contra automatización; antes de aceptar tráfico público, configura límites de solicitudes y protección contra spam. Las notificaciones requieren un dominio de remitente verificado en Resend.
 
-Los equipos que ya existan en el `localStorage` de los visitantes no se pueden importar ni notificar automáticamente; esos datos están guardados en sus respectivos navegadores.
+Los equipos antiguos guardados en `localStorage` no se migran automáticamente a Supabase; vuelve a registrarlos después de configurar la integración si necesitas compartirlos.
 
 ## Dar acceso de edición del repositorio
 

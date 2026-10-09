@@ -96,7 +96,7 @@
       <div class="container split team-management">
         <div class="split__text">
           <h2>El siguiente nivel se juega en equipo</h2>
-          <p>Invita a tus amigos, crea identidades y compite con roles definidos.</p>
+          <p>Invita a tus amigos con un enlace de equipo, crea identidades y compite con roles definidos.</p>
           <ul class="feature-list">
             <li>
               <span class="feature-list__icon">🔗</span>
@@ -114,17 +114,23 @@
             </li>
           </ul>
           <form class="team-form" id="team-form">
-            <label for="team-name">Nombre del equipo</label>
-            <input id="team-name" name="team-name" type="text" maxlength="60" required>
+            <div class="team-form__field" id="team-name-field">
+              <label for="team-name">Nombre del equipo</label>
+              <input id="team-name" name="team-name" type="text" maxlength="60" required>
+            </div>
 
-            <label for="team-members">Integrantes</label>
-            <textarea id="team-members" name="team-members" rows="3" maxlength="300" aria-describedby="team-members-help" required></textarea>
-            <p class="team-form__help muted" id="team-members-help">Separa los nombres con comas o saltos de línea.</p>
+            <div class="team-form__field">
+              <label for="team-members" id="team-members-label">Integrantes</label>
+              <textarea id="team-members" name="team-members" rows="3" maxlength="300" aria-describedby="team-members-help" required></textarea>
+              <p class="team-form__help muted" id="team-members-help">Separa los nombres con comas o saltos de línea.</p>
+            </div>
 
-            <label for="team-captain">Capitán</label>
-            <select id="team-captain" name="team-captain" required disabled>
-              <option value="">Añade integrantes para elegir un capitán</option>
-            </select>
+            <div class="team-form__field" id="team-captain-field">
+              <label for="team-captain">Capitán</label>
+              <select id="team-captain" name="team-captain" required disabled>
+                <option value="">Añade integrantes para elegir un capitán</option>
+              </select>
+            </div>
 
             <button class="btn btn--primary btn--lg" type="submit">Crear mi equipo</button>
             <p class="team-form__status" id="team-status" role="status" aria-live="polite"></p>
@@ -415,10 +421,18 @@
       const notificationEndpoint = "";
       const form = document.getElementById("team-form");
       const teamNameInput = document.getElementById("team-name");
+      const teamNameField = document.getElementById("team-name-field");
       const teamMembersInput = document.getElementById("team-members");
+      const teamMembersLabel = document.getElementById("team-members-label");
+      const teamMembersHelp = document.getElementById("team-members-help");
       const teamCaptainInput = document.getElementById("team-captain");
+      const teamCaptainField = document.getElementById("team-captain-field");
       const teamList = document.getElementById("team-list");
       const status = document.getElementById("team-status");
+      const submitButton = form.querySelector('button[type="submit"]');
+      const inviteParameters = new URLSearchParams(window.location.hash.slice(1));
+      const inviteToken = inviteParameters.get("unirse");
+      const inviteTeamName = inviteParameters.get("equipo");
       let teams;
 
       function isTeam(value) {
@@ -427,6 +441,15 @@
           && Array.isArray(value.members)
           && value.members.every((member) => typeof member === "string")
           && (value.captain === undefined || typeof value.captain === "string");
+      }
+
+      function makeInviteLink(team) {
+        const inviteUrl = new URL(window.location.href);
+        inviteUrl.hash = new URLSearchParams({
+          unirse: team.invite_token,
+          equipo: team.name
+        }).toString();
+        return inviteUrl.href;
       }
 
       function getMembers() {
@@ -480,6 +503,22 @@
           captain.textContent = `Capitán: ${team.captain || "Sin asignar"}`;
 
           item.append(name, members, captain);
+          if (typeof team.invite_token === "string") {
+            const inviteButton = document.createElement("button");
+            inviteButton.className = "btn btn--outline btn--sm team-list__invite";
+            inviteButton.type = "button";
+            inviteButton.textContent = "Copiar enlace para unirse";
+            inviteButton.addEventListener("click", async () => {
+              try {
+                await navigator.clipboard.writeText(makeInviteLink(team));
+                status.textContent = `Enlace para unirse a ${team.name} copiado.`;
+              } catch (error) {
+                status.textContent = "No se pudo copiar el enlace. Revisa los permisos del navegador.";
+                console.error("No se pudo copiar el enlace de invitación:", error);
+              }
+            });
+            item.append(inviteButton);
+          }
           teamList.append(item);
         });
       }
@@ -499,59 +538,142 @@
         return;
       }
 
+      if (inviteToken) {
+        teamNameField.hidden = true;
+        teamCaptainField.hidden = true;
+        teamNameInput.required = false;
+        teamCaptainInput.required = false;
+        teamMembersLabel.textContent = "Tu nombre en el equipo";
+        teamMembersInput.value = "";
+        teamMembersInput.placeholder = "Escribe tu nombre";
+        teamMembersInput.setAttribute("maxlength", "60");
+        teamMembersHelp.textContent = "Escribe un solo nombre para unirte al equipo.";
+        submitButton.textContent = "Unirme al equipo";
+
+        if (!notificationEndpoint) {
+          status.textContent = "La unión compartida todavía no está configurada. Inténtalo más tarde.";
+          submitButton.disabled = true;
+        } else {
+          status.textContent = inviteTeamName
+            ? `Invitación para unirte a ${inviteTeamName}.`
+            : "Invitación para unirte al equipo.";
+        }
+      }
+
+      async function sendTeamRequest(payload) {
+        const response = await fetch(notificationEndpoint, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload)
+        });
+        const result = await response.json();
+        if (!response.ok) {
+          throw new Error(result.error || `El servicio respondió con ${response.status}.`);
+        }
+        return result;
+      }
+
       form.addEventListener("submit", async (event) => {
         event.preventDefault();
-        const name = teamNameInput.value.trim();
         const members = getMembers();
-        const captain = teamCaptainInput.value;
+        const joiningTeam = Boolean(inviteToken);
 
         if (members.length === 0) {
-          status.textContent = "Añade al menos un integrante para crear el equipo.";
+          status.textContent = joiningTeam
+            ? "Escribe tu nombre para unirte al equipo."
+            : "Añade al menos un integrante para crear el equipo.";
           teamMembersInput.focus();
           return;
         }
 
-        if (!members.includes(captain)) {
+        if (joiningTeam && members.length !== 1) {
+          status.textContent = "Escribe un solo nombre para unirte al equipo.";
+          teamMembersInput.focus();
+          return;
+        }
+
+        const name = teamNameInput.value.trim();
+        const captain = teamCaptainInput.value;
+        if (!joiningTeam && !members.includes(captain)) {
           status.textContent = "Selecciona como capitán a uno de los integrantes.";
           teamCaptainInput.focus();
           return;
         }
 
         const team = { name, members, captain };
-        const submitButton = form.querySelector('button[type="submit"]');
         submitButton.disabled = true;
 
-        if (notificationEndpoint) {
-          status.textContent = "Enviando el registro...";
+        if (joiningTeam) {
           try {
-            const response = await fetch(notificationEndpoint, {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify(team)
+            status.textContent = "Añadiéndote al equipo...";
+            const result = await sendTeamRequest({
+              action: "join",
+              inviteToken,
+              member: members[0]
             });
-            if (!response.ok) {
-              throw new Error(`El servicio de notificaciones respondió con ${response.status}.`);
+            const joinedTeam = result.team;
+            teams = teams.some((savedTeam) => savedTeam.id === joinedTeam.id)
+              ? teams.map((savedTeam) => savedTeam.id === joinedTeam.id ? joinedTeam : savedTeam)
+              : [...teams, joinedTeam];
+            let localCopySaved = true;
+            try {
+              localStorage.setItem(storageKey, JSON.stringify(teams));
+            } catch (error) {
+              localCopySaved = false;
+              console.error("No se pudo guardar la copia local del equipo:", error);
             }
+            renderTeams();
+            form.reset();
+            status.textContent = !result.added
+              ? `Ya formas parte de ${joinedTeam.name}.`
+              : result.emailNotified
+                ? `¡Ya formas parte de ${joinedTeam.name}! Se notificó la actualización.`
+                : `¡Ya formas parte de ${joinedTeam.name}! No se pudo enviar la notificación por correo.`;
+            if (!localCopySaved) {
+              status.textContent += " El equipo se actualizó en el servidor, pero no en este navegador.";
+            }
+            window.history.replaceState(null, "", `${window.location.pathname}${window.location.search}`);
           } catch (error) {
-            status.textContent = "No se pudo enviar el equipo. No se registró; revisa la conexión e inténtalo de nuevo.";
-            console.error("No se pudo enviar la notificación del equipo:", error);
+            status.textContent = "No se pudo añadir el integrante. Revisa el enlace o inténtalo de nuevo.";
+            console.error("No se pudo unir al equipo:", error);
+          } finally {
+            submitButton.disabled = false;
+          }
+          return;
+        }
+
+        let registeredTeam = team;
+        let emailNotified = false;
+        if (notificationEndpoint) {
+          try {
+            status.textContent = "Registrando el equipo...";
+            const result = await sendTeamRequest({ action: "create", team });
+            registeredTeam = result.team;
+            emailNotified = result.emailNotified;
+          } catch (error) {
+            status.textContent = "No se pudo registrar el equipo. Revisa la conexión e inténtalo de nuevo.";
+            console.error("No se pudo registrar el equipo:", error);
             submitButton.disabled = false;
             return;
           }
         }
 
-        const updatedTeams = [...teams, team];
+        const updatedTeams = [...teams, registeredTeam];
         try {
           localStorage.setItem(storageKey, JSON.stringify(updatedTeams));
         } catch (error) {
-          status.textContent = notificationEndpoint
-            ? "La notificación se envió, pero no se pudo guardar el equipo en este navegador."
-            : "No se pudo guardar el equipo en este navegador.";
-          console.error("No se pudo guardar el equipo:", error);
-          if (notificationEndpoint) {
-            form.reset();
-            updateCaptainOptions();
+          if (!notificationEndpoint) {
+            status.textContent = "No se pudo guardar el equipo en este navegador.";
+            console.error("No se pudo guardar el equipo:", error);
+            submitButton.disabled = false;
+            return;
           }
+          console.error("No se pudo guardar la copia local del equipo:", error);
+          status.textContent = "El equipo se registró en el servidor, pero no se pudo guardar la copia local.";
+          teams = updatedTeams;
+          renderTeams();
+          form.reset();
+          updateCaptainOptions();
           submitButton.disabled = false;
           return;
         }
@@ -562,6 +684,17 @@
         updateCaptainOptions();
         submitButton.disabled = false;
 
+        const notificationText = registeredTeam.id
+          ? (emailNotified
+            ? "El equipo se guardó en el servidor y se notificó por correo."
+            : "El equipo se guardó en el servidor, pero no se pudo enviar el aviso por correo.")
+          : "El equipo solo se guardó en este navegador; el registro compartido aún no está configurado.";
+        if (registeredTeam.invite_token) {
+          status.textContent = `Equipo registrado. Comparte el enlace de invitación desde la lista. ${notificationText}`;
+        } else {
+          status.textContent = `Equipo guardado. ${notificationText}`;
+        }
+
         try {
           const file = new Blob([JSON.stringify(teams, null, 2)], { type: "application/json" });
           const downloadUrl = URL.createObjectURL(file);
@@ -570,13 +703,8 @@
           downloadLink.download = "equipos.json";
           downloadLink.click();
           setTimeout(() => URL.revokeObjectURL(downloadUrl), 1000);
-          status.textContent = notificationEndpoint
-            ? "Equipo registrado y notificación enviada. Documento equipos.json descargado."
-            : "Equipo guardado solo en este navegador y documento equipos.json descargado. El envío de notificaciones aún no está configurado.";
         } catch (error) {
-          status.textContent = notificationEndpoint
-            ? "Equipo registrado y notificación enviada, pero no se pudo descargar equipos.json."
-            : "El equipo se guardó en este navegador, pero no se pudo descargar equipos.json. El envío de notificaciones aún no está configurado.";
+          status.textContent += " No se pudo descargar equipos.json.";
           console.error("No se pudo descargar el documento de equipos:", error);
         }
       });

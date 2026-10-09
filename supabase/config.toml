@@ -1,0 +1,2 @@
+[functions.notify-team-registration]
+verify_jwt = false

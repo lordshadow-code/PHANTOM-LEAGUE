@@ -164,6 +164,7 @@ h3{font-size:1.15rem}
 .team-form input:focus,.team-form textarea:focus,.team-form select:focus{outline:2px solid var(--accent-soft);outline-offset:2px}
 .team-form__help,.team-form__status{font-size:.82rem}
 .team-form__status{min-height:1.4em;color:var(--accent-soft)}
+.team-form__field[hidden]{display:none}
 .team-form button{align-self:flex-start;margin-top:.35rem}
 .team-management{align-items:start}
 .team-list-section{
@@ -175,6 +176,7 @@ h3{font-size:1.15rem}
   padding:1rem;border:1px solid var(--border);border-radius:16px;background:rgba(18,26,45,.65);
 }
 .team-list__item p{margin-top:.25rem;color:var(--muted);font-size:.9rem}
+.team-list__invite{margin-top:.8rem}
 .team-list__empty{font-size:.9rem}
 
 .comunidad{padding:4rem 0;border-block:1px solid var(--border);background:rgba(11,18,29,.7)}
