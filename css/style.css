@@ -228,7 +228,12 @@ h3{font-size:1.15rem}
 .team-list__detail strong{color:var(--text);font-size:.82rem}
 .team-list__detail a{color:var(--accent-soft);text-decoration:underline;text-decoration-color:rgba(201,184,255,.35);text-underline-offset:3px}
 .team-list__detail a:hover{color:var(--cyan)}
-.team-list__invite{margin-top:.8rem}
+.team-list__invitation{display:grid;gap:.45rem;margin-top:1rem;padding:.85rem;border:1px solid rgba(154,142,255,.2);border-radius:14px;background:linear-gradient(120deg,rgba(86,68,255,.1),rgba(8,14,24,.58))}
+.team-list__invitation-label{color:var(--accent-soft);font-size:.7rem;font-weight:800;letter-spacing:.1em;text-transform:uppercase}
+.team-list__invitation-link{display:block;min-width:0;overflow-wrap:anywhere;color:var(--text);font-size:.82rem;text-decoration:underline;text-decoration-color:rgba(201,184,255,.38);text-underline-offset:3px}
+.team-list__invitation-link:hover{color:var(--cyan)}
+.team-list__invite{justify-self:start;margin-top:.15rem}
+.team-list__invitation-notice{margin-top:.8rem;padding:.7rem .8rem;border:1px dashed rgba(164,177,221,.18);border-radius:12px;color:var(--muted);font-size:.78rem}
 .team-list__empty{font-size:.9rem}
 
 .comunidad{padding:4rem 0;border-block:1px solid var(--border);background:linear-gradient(100deg,rgba(11,17,31,.88),rgba(14,16,35,.88),rgba(8,17,30,.88))}

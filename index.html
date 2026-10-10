@@ -618,20 +618,40 @@
           }
           item.append(heading, profile);
           if (typeof team.invite_token === "string") {
+            const invitation = document.createElement("div");
+            invitation.className = "team-list__invitation";
+
+            const invitationLabel = document.createElement("span");
+            invitationLabel.className = "team-list__invitation-label";
+            invitationLabel.textContent = "Enlace exclusivo para unirse";
+
+            const inviteUrl = makeInviteLink(team);
+            const invitationLink = document.createElement("a");
+            invitationLink.className = "team-list__invitation-link";
+            invitationLink.href = inviteUrl;
+            invitationLink.textContent = inviteUrl;
+            invitationLink.setAttribute("aria-label", `Abrir invitación para unirse a ${team.name}`);
+
             const inviteButton = document.createElement("button");
             inviteButton.className = "btn btn--outline btn--sm team-list__invite";
             inviteButton.type = "button";
             inviteButton.textContent = "Copiar enlace para unirse";
             inviteButton.addEventListener("click", async () => {
               try {
-                await navigator.clipboard.writeText(makeInviteLink(team));
+                await navigator.clipboard.writeText(inviteUrl);
                 status.textContent = `Enlace para unirse a ${team.name} copiado.`;
               } catch (error) {
                 status.textContent = "No se pudo copiar el enlace. Revisa los permisos del navegador.";
                 console.error("No se pudo copiar el enlace de invitación:", error);
               }
             });
-            item.append(inviteButton);
+            invitation.append(invitationLabel, invitationLink, inviteButton);
+            item.append(invitation);
+          } else {
+            const invitationNotice = document.createElement("p");
+            invitationNotice.className = "team-list__invitation-notice";
+            invitationNotice.textContent = "Este equipo se guardó localmente y no tiene un enlace compartido.";
+            item.append(invitationNotice);
           }
           teamList.append(item);
         });
