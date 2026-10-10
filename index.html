@@ -574,10 +574,18 @@
       }
 
       function getMembers() {
-        return [...new Set(teamMembersInput.value
+        const seen = new Set();
+        return teamMembersInput.value
           .split(/[,\n]/)
           .map((member) => member.trim())
-          .filter(Boolean))];
+          .filter((member) => {
+            const normalizedMember = member.toLowerCase();
+            if (!member || seen.has(normalizedMember)) {
+              return false;
+            }
+            seen.add(normalizedMember);
+            return true;
+          });
       }
 
       function updateCaptainOptions() {
@@ -1132,6 +1140,7 @@
         teams = updatedTeams;
         renderTeams();
         form.reset();
+        memberTrackerValues.clear();
         updateCaptainOptions();
         submitButton.disabled = false;
 
