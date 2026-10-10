@@ -132,6 +132,12 @@
               <p class="team-form__help muted" id="team-members-help">Separa los nombres con comas o saltos de línea.</p>
             </div>
 
+            <fieldset class="team-form__details team-form__member-trackers" id="team-member-trackers">
+              <legend>Tracker de cada integrante</legend>
+              <p class="team-form__help muted" id="team-member-trackers-help">Añade el enlace de Tracker de cada jugador.</p>
+              <div class="team-form__member-tracker-list" id="team-member-tracker-list"></div>
+            </fieldset>
+
             <div class="team-form__field" id="team-captain-field">
               <label for="team-captain">Capitán</label>
               <select id="team-captain" name="team-captain" required disabled>
@@ -142,18 +148,13 @@
             <fieldset class="team-form__details" id="team-application-fields">
               <legend>Perfil competitivo del capitán</legend>
               <div class="team-form__field">
-                <label for="team-discord">Discord del capitán</label>
+                <label for="team-discord">Discord del capitán (solo visible para administración)</label>
                 <input id="team-discord" name="team-discord" type="text" maxlength="80" autocomplete="off" placeholder="usuario o usuario#0000" required>
               </div>
 
               <div class="team-form__field">
                 <label for="team-player-name">Nombre de juego del capitán</label>
                 <input id="team-player-name" name="team-player-name" type="text" maxlength="80" autocomplete="off" required>
-              </div>
-
-              <div class="team-form__field">
-                <label for="team-tracker">Tracker del capitán</label>
-                <input id="team-tracker" name="team-tracker" type="url" maxlength="500" placeholder="https://" required>
               </div>
 
               <div class="team-form__field">
@@ -178,6 +179,11 @@
         <div class="team-list-section">
           <h3>Tus equipos</h3>
           <ul class="team-list" id="team-list"></ul>
+          <section class="team-admin" id="team-admin-panel" hidden aria-labelledby="team-admin-title">
+            <h3 id="team-admin-title">Administración de postulaciones</h3>
+            <p class="team-form__status" id="team-admin-status" role="status" aria-live="polite"></p>
+            <ul class="team-list" id="team-admin-list"></ul>
+          </section>
         </div>
       </div>
     </section>
@@ -470,14 +476,18 @@
       const applicationFields = document.getElementById("team-application-fields");
       const teamDiscordInput = document.getElementById("team-discord");
       const teamPlayerNameInput = document.getElementById("team-player-name");
-      const teamTrackerInput = document.getElementById("team-tracker");
       const teamRankInput = document.getElementById("team-rank");
       const teamMembersInput = document.getElementById("team-members");
       const teamMembersLabel = document.getElementById("team-members-label");
       const teamMembersHelp = document.getElementById("team-members-help");
+      const memberTrackerHelp = document.getElementById("team-member-trackers-help");
+      const memberTrackerList = document.getElementById("team-member-tracker-list");
       const teamCaptainInput = document.getElementById("team-captain");
       const teamCaptainField = document.getElementById("team-captain-field");
       const teamList = document.getElementById("team-list");
+      const adminPanel = document.getElementById("team-admin-panel");
+      const adminStatus = document.getElementById("team-admin-status");
+      const adminTeamList = document.getElementById("team-admin-list");
       const status = document.getElementById("team-status");
       const submitButton = form.querySelector('button[type="submit"]');
       const teamAuth = document.getElementById("team-auth");
@@ -490,6 +500,7 @@
       let teams;
       let logoPreviewUrl;
       let currentUser = null;
+      const memberTrackerValues = new Map();
 
       function isTeam(value) {
         return value
@@ -499,6 +510,13 @@
           && (value.captain === undefined || typeof value.captain === "string")
           && (value.invite_token === undefined || typeof value.invite_token === "string")
           && (value.captain_user_id === undefined || typeof value.captain_user_id === "string")
+          && (value.memberTrackers === undefined || (
+            typeof value.memberTrackers === "object"
+            && value.memberTrackers !== null
+            && !Array.isArray(value.memberTrackers)
+            && Object.entries(value.memberTrackers).every(([member, tracker]) =>
+              typeof member === "string" && typeof tracker === "string")
+          ))
           && ["logoData", "discordName", "playerName", "trackerUrl", "rank"]
             .every((key) => value[key] === undefined || typeof value[key] === "string");
       }
@@ -581,6 +599,35 @@
         });
         teamCaptainInput.disabled = members.length === 0;
         teamCaptainInput.value = members.includes(selectedCaptain) ? selectedCaptain : "";
+        updateMemberTrackerInputs(members);
+      }
+
+      function updateMemberTrackerInputs(members = getMembers()) {
+        memberTrackerList.replaceChildren();
+        const isJoining = Boolean(inviteToken);
+        memberTrackerHelp.textContent = isJoining
+          ? "Añade el enlace de Tracker de tu cuenta para completar la unión."
+          : "Añade un enlace válido de Tracker para cada jugador, incluido el capitán.";
+
+        members.forEach((member, index) => {
+          const field = document.createElement("div");
+          field.className = "team-form__field";
+          const label = document.createElement("label");
+          label.htmlFor = `team-member-tracker-${index}`;
+          label.textContent = `Tracker de ${member}`;
+          const input = document.createElement("input");
+          input.id = label.htmlFor;
+          input.type = "url";
+          input.maxLength = 500;
+          input.placeholder = "https://";
+          input.required = true;
+          input.value = memberTrackerValues.get(member) || "";
+          input.addEventListener("input", () => {
+            memberTrackerValues.set(member, input.value);
+          });
+          field.append(label, input);
+          memberTrackerList.append(field);
+        });
       }
 
       function renderTeams() {
@@ -619,22 +666,25 @@
           const captain = document.createElement("p");
           captain.textContent = `Capitán: ${team.captain || "Sin asignar"}`;
           profile.append(members, captain);
-          appendTeamDetail(profile, "Discord", team.discordName);
           appendTeamDetail(profile, "Nombre de juego", team.playerName);
           appendTeamDetail(profile, "Rango actual", team.rank);
-          if (typeof team.trackerUrl === "string" && isHttpUrl(team.trackerUrl)) {
-            const tracker = document.createElement("p");
-            tracker.className = "team-list__detail";
-            const trackerLabel = document.createElement("strong");
-            trackerLabel.textContent = "Tracker: ";
-            const trackerLink = document.createElement("a");
-            trackerLink.href = team.trackerUrl;
-            trackerLink.target = "_blank";
-            trackerLink.rel = "noopener noreferrer";
-            trackerLink.textContent = "Ver perfil";
-            tracker.append(trackerLabel, trackerLink);
-            profile.append(tracker);
-          }
+          team.members.forEach((member) => {
+            const trackerUrl = team.memberTrackers?.[member]
+              || (member === team.captain ? team.trackerUrl : "");
+            if (typeof trackerUrl === "string" && isHttpUrl(trackerUrl)) {
+              const tracker = document.createElement("p");
+              tracker.className = "team-list__detail";
+              const trackerLabel = document.createElement("strong");
+              trackerLabel.textContent = `Tracker de ${member}: `;
+              const trackerLink = document.createElement("a");
+              trackerLink.href = trackerUrl;
+              trackerLink.target = "_blank";
+              trackerLink.rel = "noopener noreferrer";
+              trackerLink.textContent = "Ver perfil";
+              tracker.append(trackerLabel, trackerLink);
+              profile.append(tracker);
+            }
+          });
           item.append(heading, profile);
           const isCaptain = typeof currentUser?.id === "string"
             && team.captain_user_id === currentUser.id;
@@ -678,11 +728,67 @@
         });
       }
 
+      function renderAdminTeams(adminTeams) {
+        adminTeamList.replaceChildren();
+        if (adminTeams.length === 0) {
+          const emptyMessage = document.createElement("li");
+          emptyMessage.className = "team-list__empty muted";
+          emptyMessage.textContent = "Todavía no hay postulaciones compartidas.";
+          adminTeamList.append(emptyMessage);
+          return;
+        }
+
+        adminTeams.forEach((team) => {
+          const item = document.createElement("li");
+          item.className = "team-list__item";
+          const heading = document.createElement("strong");
+          heading.className = "team-list__name";
+          heading.textContent = team.name;
+          const profile = document.createElement("div");
+          profile.className = "team-list__profile";
+          appendTeamDetail(profile, "Capitán", team.captain);
+          appendTeamDetail(profile, "Discord", team.discordName);
+          team.members.forEach((member) => {
+            const trackerUrl = team.memberTrackers?.[member]
+              || (member === team.captain ? team.trackerUrl : "");
+            if (typeof trackerUrl === "string" && isHttpUrl(trackerUrl)) {
+              const tracker = document.createElement("p");
+              tracker.className = "team-list__detail";
+              const label = document.createElement("strong");
+              label.textContent = `Tracker de ${member}: `;
+              const link = document.createElement("a");
+              link.href = trackerUrl;
+              link.target = "_blank";
+              link.rel = "noopener noreferrer";
+              link.textContent = "Ver perfil";
+              tracker.append(label, link);
+              profile.append(tracker);
+            }
+          });
+          item.append(heading, profile);
+          adminTeamList.append(item);
+        });
+      }
+
       try {
         const savedTeams = localStorage.getItem(storageKey);
         teams = savedTeams === null ? [] : JSON.parse(savedTeams);
         if (!Array.isArray(teams) || !teams.every(isTeam)) {
           throw new Error("Los datos guardados no tienen un formato válido.");
+        }
+        let removedStoredDiscord = false;
+        teams.forEach((team) => {
+          if (team.discordName) {
+            team.discordName = "";
+            removedStoredDiscord = true;
+          }
+        });
+        if (removedStoredDiscord) {
+          try {
+            localStorage.setItem(storageKey, JSON.stringify(teams));
+          } catch (error) {
+            console.error("No se pudo limpiar el Discord guardado localmente:", error);
+          }
         }
         renderTeams();
         updateCaptainOptions();
@@ -693,11 +799,45 @@
         return;
       }
 
+      async function loadAdminPanel(expectedUserId) {
+        try {
+          const { data, error } = await authClient.auth.getSession();
+          if (error) {
+            throw error;
+          }
+          if (!data.session || data.session.user.id !== expectedUserId) {
+            return;
+          }
+          const result = await sendTeamRequest(
+            { action: "admin-list" },
+            data.session.access_token
+          );
+          if (currentUser?.id !== expectedUserId) {
+            return;
+          }
+          if (!Array.isArray(result.teams)) {
+            throw new Error("La respuesta administrativa no tiene un formato válido.");
+          }
+          renderAdminTeams(result.teams);
+          adminStatus.textContent = "";
+          adminPanel.hidden = false;
+        } catch (error) {
+          if (currentUser?.id !== expectedUserId || error.status === 403) {
+            return;
+          }
+          console.error("No se pudieron cargar las postulaciones administrativas:", error);
+          adminStatus.textContent = "No se pudieron cargar las postulaciones. Inténtalo de nuevo más tarde.";
+          adminPanel.hidden = false;
+        }
+      }
+
       function updateAuthState(user) {
         currentUser = user;
         const isJoining = Boolean(inviteToken);
         const isSignedIn = Boolean(currentUser);
 
+        adminPanel.hidden = true;
+        adminTeamList.replaceChildren();
         teamAuth.hidden = isJoining;
         signInButton.hidden = isSignedIn;
         signOutButton.hidden = !isSignedIn || isJoining;
@@ -706,6 +846,9 @@
           ? `Cuenta del capitán verificada con Discord: ${currentUser.user_metadata?.full_name || currentUser.user_metadata?.name || "sesión activa"}.`
           : "Inicia sesión con la cuenta de Discord del capitán para verificar su identidad y administrar el enlace de invitación.";
         renderTeams();
+        if (isSignedIn && !isJoining && notificationEndpoint) {
+          void loadAdminPanel(currentUser.id);
+        }
       }
 
       authClient.auth.onAuthStateChange((_event, session) => {
@@ -778,6 +921,7 @@
         teamMembersInput.setAttribute("maxlength", "60");
         teamMembersHelp.textContent = "Escribe un solo nombre para unirte al equipo.";
         submitButton.textContent = "Unirme al equipo";
+        updateCaptainOptions();
 
         if (!notificationEndpoint) {
           status.textContent = "La unión compartida todavía no está configurada. Inténtalo más tarde.";
@@ -801,7 +945,9 @@
         });
         const result = await response.json();
         if (!response.ok) {
-          throw new Error(result.error || `El servicio respondió con ${response.status}.`);
+          const error = new Error(result.error || `El servicio respondió con ${response.status}.`);
+          error.status = response.status;
+          throw error;
         }
         return result;
       }
@@ -840,7 +986,10 @@
 
         const discordName = teamDiscordInput.value.trim();
         const playerName = teamPlayerNameInput.value.trim();
-        const trackerUrl = teamTrackerInput.value.trim();
+        const memberTrackers = Object.fromEntries(members.map((member) => [
+          member,
+          (memberTrackerValues.get(member) || "").trim()
+        ]));
         const rank = teamRankInput.value.trim();
         if (!joiningTeam && (!discordName || !playerName || !rank)) {
           status.textContent = "Completa el Discord, el nombre de juego y el rango actual del capitán.";
@@ -849,9 +998,10 @@
             .focus();
           return;
         }
-        if (!joiningTeam && !isHttpUrl(trackerUrl)) {
-          status.textContent = "Introduce un enlace de Tracker válido que empiece con http:// o https://.";
-          teamTrackerInput.focus();
+        const missingTrackerIndex = members.findIndex((member) => !isHttpUrl(memberTrackers[member]));
+        if (missingTrackerIndex !== -1) {
+          status.textContent = `Introduce un enlace de Tracker válido para ${members[missingTrackerIndex]}.`;
+          memberTrackerList.querySelectorAll("input")[missingTrackerIndex].focus();
           return;
         }
 
@@ -868,16 +1018,20 @@
           }
         }
 
+        const captainTrackerUrl = joiningTeam
+          ? memberTrackers[members[0]]
+          : memberTrackers[captain];
         const team = joiningTeam
-          ? { name, members, captain }
+          ? { name, members, captain, memberTrackers, trackerUrl: captainTrackerUrl }
           : {
               name,
               members,
               captain,
               logoData,
-              discordName,
+              discordName: "",
               playerName,
-              trackerUrl,
+              trackerUrl: captainTrackerUrl,
+              memberTrackers,
               rank
             };
 
@@ -887,7 +1041,8 @@
             const result = await sendTeamRequest({
               action: "join",
               inviteToken,
-              member: members[0]
+              member: members[0],
+              trackerUrl: captainTrackerUrl
             });
             const joinedTeam = result.team;
             teams = teams.some((savedTeam) => savedTeam.id === joinedTeam.id)
@@ -904,6 +1059,8 @@
             }
             renderTeams();
             form.reset();
+            memberTrackerValues.clear();
+            updateMemberTrackerInputs([]);
             status.textContent = !result.added
               ? `Ya formas parte de ${joinedTeam.name}.`
               : result.emailNotified
@@ -935,7 +1092,10 @@
             }
             status.textContent = "Registrando el equipo...";
             const result = await sendTeamRequest(
-              { action: "create", team },
+              {
+                action: "create",
+                team: { ...team, discordName }
+              },
               sessionData.session.access_token
             );
             registeredTeam = result.team;
@@ -963,6 +1123,7 @@
           teams = updatedTeams;
           renderTeams();
           form.reset();
+          memberTrackerValues.clear();
           updateCaptainOptions();
           submitButton.disabled = false;
           return;

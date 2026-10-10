@@ -200,6 +200,8 @@ h3{font-size:1.15rem}
 .team-form__details{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:.75rem;border:0;padding:0;margin:0}
 .team-form__details legend{grid-column:1/-1;margin-bottom:.1rem;color:var(--accent-soft);font-size:.75rem;font-weight:800;letter-spacing:.12em;text-transform:uppercase}
 .team-form__details[hidden]{display:none}
+.team-form__member-trackers #team-member-trackers-help,.team-form__member-tracker-list{grid-column:1/-1}
+.team-form__member-tracker-list{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:.75rem}
 .team-form__field{min-width:0}
 .team-form__logo-field input[type="file"]{padding:.55rem;background:rgba(7,13,24,.58);font-size:.82rem}
 .team-form__logo-field input[type="file"]::file-selector-button{
@@ -240,6 +242,9 @@ h3{font-size:1.15rem}
 .team-list__invite{justify-self:start;margin-top:.15rem}
 .team-list__invitation-notice{margin-top:.8rem;padding:.7rem .8rem;border:1px dashed rgba(164,177,221,.18);border-radius:12px;color:var(--muted);font-size:.78rem}
 .team-list__empty{font-size:.9rem}
+.team-admin{margin-top:1.5rem;padding-top:1.25rem;border-top:1px solid var(--border)}
+.team-admin[hidden]{display:none}
+.team-admin h3{font-size:1.05rem}
 
 .comunidad{padding:4rem 0;border-block:1px solid var(--border);background:linear-gradient(100deg,rgba(11,17,31,.88),rgba(14,16,35,.88),rgba(8,17,30,.88))}
 .comunidad__grid{display:grid;grid-template-columns:1fr 1.1fr;gap:2rem;align-items:center}
@@ -361,6 +366,7 @@ h3{font-size:1.15rem}
   .header__inner .btn{display:none}
   .hero__actions,.newsletter__row{flex-direction:column;align-items:stretch}
   .team-form__details{grid-template-columns:1fr}
+  .team-form__member-tracker-list{grid-template-columns:1fr}
   .hero__badge{position:static;margin-top:1rem}
   .hero__visual{min-height:auto}
   .claims,.footer__nav{grid-template-columns:1fr}
