@@ -64,6 +64,7 @@ h3{font-size:1.15rem}
   transition:transform .2s ease, background .2s ease, border-color .2s ease, box-shadow .2s ease;
   white-space:nowrap;
 }
+.btn[hidden]{display:none}
 .btn:hover{transform:translateY(-2px)}
 .btn--primary{
   background:linear-gradient(135deg, #6b5cff 0%, #4f34ff 100%);
@@ -192,6 +193,10 @@ h3{font-size:1.15rem}
 .team-form__help,.team-form__status{font-size:.82rem}
 .team-form__status{min-height:1.4em;color:var(--accent-soft)}
 .team-form__field[hidden]{display:none}
+.team-auth{display:grid;gap:.75rem;padding:1rem;border:1px solid rgba(154,142,255,.2);border-radius:16px;background:linear-gradient(120deg,rgba(86,68,255,.09),rgba(8,14,24,.58))}
+.team-auth[hidden]{display:none}
+.team-auth__status{color:var(--muted);font-size:.84rem}
+.team-auth__actions{display:flex;flex-wrap:wrap;gap:.6rem}
 .team-form__details{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:.75rem;border:0;padding:0;margin:0}
 .team-form__details legend{grid-column:1/-1;margin-bottom:.1rem;color:var(--accent-soft);font-size:.75rem;font-weight:800;letter-spacing:.12em;text-transform:uppercase}
 .team-form__details[hidden]{display:none}

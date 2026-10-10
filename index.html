@@ -162,6 +162,14 @@
               </div>
             </fieldset>
 
+            <div class="team-auth" id="team-auth">
+              <p class="team-auth__status" id="team-auth-status" role="status" aria-live="polite">Inicia sesión con la cuenta de Discord del capitán para verificar su identidad y administrar el enlace de invitación.</p>
+              <div class="team-auth__actions">
+                <button class="btn btn--outline btn--sm" id="team-discord-sign-in" type="button">Verificar con Discord</button>
+                <button class="btn btn--outline btn--sm" id="team-discord-sign-out" type="button" hidden>Cerrar sesión</button>
+              </div>
+            </div>
+
             <button class="btn btn--primary btn--lg" type="submit">Crear mi equipo</button>
             <p class="team-form__status" id="team-status" role="status" aria-live="polite"></p>
           </form>
@@ -445,10 +453,14 @@
     </div>
   </footer>
 
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script>
     (() => {
       const storageKey = "phantom-teams";
       const notificationEndpoint = "https://jlyqgwpyozpeewgjaykv.supabase.co/functions/v1/notify-team-registration";
+      const supabaseUrl = "https://jlyqgwpyozpeewgjaykv.supabase.co";
+      const supabasePublishableKey = "sb_publishable_9LGVF2PqZ9TW79kctIoKHg_dtCmnHxP";
+      const authClient = window.supabase.createClient(supabaseUrl, supabasePublishableKey);
       const form = document.getElementById("team-form");
       const teamNameInput = document.getElementById("team-name");
       const teamNameField = document.getElementById("team-name-field");
@@ -468,11 +480,16 @@
       const teamList = document.getElementById("team-list");
       const status = document.getElementById("team-status");
       const submitButton = form.querySelector('button[type="submit"]');
+      const teamAuth = document.getElementById("team-auth");
+      const teamAuthStatus = document.getElementById("team-auth-status");
+      const signInButton = document.getElementById("team-discord-sign-in");
+      const signOutButton = document.getElementById("team-discord-sign-out");
       const inviteParameters = new URLSearchParams(window.location.hash.slice(1));
       const inviteToken = inviteParameters.get("unirse");
       const inviteTeamName = inviteParameters.get("equipo");
       let teams;
       let logoPreviewUrl;
+      let currentUser = null;
 
       function isTeam(value) {
         return value
@@ -480,6 +497,8 @@
           && Array.isArray(value.members)
           && value.members.every((member) => typeof member === "string")
           && (value.captain === undefined || typeof value.captain === "string")
+          && (value.invite_token === undefined || typeof value.invite_token === "string")
+          && (value.captain_user_id === undefined || typeof value.captain_user_id === "string")
           && ["logoData", "discordName", "playerName", "trackerUrl", "rank"]
             .every((key) => value[key] === undefined || typeof value[key] === "string");
       }
@@ -617,7 +636,9 @@
             profile.append(tracker);
           }
           item.append(heading, profile);
-          if (typeof team.invite_token === "string") {
+          const isCaptain = typeof currentUser?.id === "string"
+            && team.captain_user_id === currentUser.id;
+          if (typeof team.invite_token === "string" && isCaptain) {
             const invitation = document.createElement("div");
             invitation.className = "team-list__invitation";
 
@@ -647,7 +668,7 @@
             });
             invitation.append(invitationLabel, invitationLink, inviteButton);
             item.append(invitation);
-          } else {
+          } else if (!team.invite_token) {
             const invitationNotice = document.createElement("p");
             invitationNotice.className = "team-list__invitation-notice";
             invitationNotice.textContent = "Este equipo se guardó localmente y no tiene un enlace compartido.";
@@ -671,6 +692,74 @@
         console.error("No se pudieron cargar los equipos:", error);
         return;
       }
+
+      function updateAuthState(user) {
+        currentUser = user;
+        const isJoining = Boolean(inviteToken);
+        const isSignedIn = Boolean(currentUser);
+
+        teamAuth.hidden = isJoining;
+        signInButton.hidden = isSignedIn;
+        signOutButton.hidden = !isSignedIn || isJoining;
+        submitButton.disabled = !isJoining && !isSignedIn;
+        teamAuthStatus.textContent = isSignedIn
+          ? `Cuenta del capitán verificada con Discord: ${currentUser.user_metadata?.full_name || currentUser.user_metadata?.name || "sesión activa"}.`
+          : "Inicia sesión con la cuenta de Discord del capitán para verificar su identidad y administrar el enlace de invitación.";
+        renderTeams();
+      }
+
+      authClient.auth.onAuthStateChange((_event, session) => {
+        updateAuthState(session?.user || null);
+      });
+
+      authClient.auth.getSession().then(({ data, error }) => {
+        if (error) {
+          teamAuthStatus.textContent = "No se pudo verificar la sesión de Discord. Recarga e inténtalo de nuevo.";
+          console.error("No se pudo recuperar la sesión de Discord:", error);
+          updateAuthState(null);
+          return;
+        }
+        updateAuthState(data.session?.user || null);
+      }).catch((error) => {
+        teamAuthStatus.textContent = "No se pudo verificar la sesión de Discord. Recarga e inténtalo de nuevo.";
+        console.error("No se pudo recuperar la sesión de Discord:", error);
+        updateAuthState(null);
+      });
+
+      signInButton.addEventListener("click", async () => {
+        signInButton.disabled = true;
+        teamAuthStatus.textContent = "Conectando con Discord...";
+        const redirectUrl = new URL(window.location.href);
+        redirectUrl.hash = "";
+        try {
+          const { error } = await authClient.auth.signInWithOAuth({
+            provider: "discord",
+            options: { redirectTo: redirectUrl.href }
+          });
+          if (error) {
+            throw error;
+          }
+        } catch (error) {
+          teamAuthStatus.textContent = "No se pudo iniciar sesión con Discord. Inténtalo de nuevo.";
+          console.error("No se pudo iniciar sesión con Discord:", error);
+          signInButton.disabled = false;
+        }
+      });
+
+      signOutButton.addEventListener("click", async () => {
+        signOutButton.disabled = true;
+        try {
+          const { error } = await authClient.auth.signOut();
+          if (error) {
+            throw error;
+          }
+        } catch (error) {
+          teamAuthStatus.textContent = "No se pudo cerrar la sesión de Discord.";
+          console.error("No se pudo cerrar la sesión de Discord:", error);
+        } finally {
+          signOutButton.disabled = false;
+        }
+      });
 
       if (inviteToken) {
         teamNameField.hidden = true;
@@ -700,10 +789,14 @@
         }
       }
 
-      async function sendTeamRequest(payload) {
+      async function sendTeamRequest(payload, accessToken) {
+        const headers = { "Content-Type": "application/json" };
+        if (accessToken) {
+          headers.Authorization = `Bearer ${accessToken}`;
+        }
         const response = await fetch(notificationEndpoint, {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
+          headers,
           body: JSON.stringify(payload)
         });
         const result = await response.json();
@@ -798,7 +891,9 @@
             });
             const joinedTeam = result.team;
             teams = teams.some((savedTeam) => savedTeam.id === joinedTeam.id)
-              ? teams.map((savedTeam) => savedTeam.id === joinedTeam.id ? joinedTeam : savedTeam)
+              ? teams.map((savedTeam) => savedTeam.id === joinedTeam.id
+                ? { ...savedTeam, ...joinedTeam }
+                : savedTeam)
               : [...teams, joinedTeam];
             let localCopySaved = true;
             try {
@@ -831,8 +926,18 @@
         let emailNotified = false;
         if (notificationEndpoint) {
           try {
+            const { data: sessionData, error: sessionError } = await authClient.auth.getSession();
+            if (sessionError || !sessionData.session) {
+              status.textContent = "Inicia sesión con Discord para verificar que eres el capitán.";
+              updateAuthState(null);
+              submitButton.disabled = false;
+              return;
+            }
             status.textContent = "Registrando el equipo...";
-            const result = await sendTeamRequest({ action: "create", team });
+            const result = await sendTeamRequest(
+              { action: "create", team },
+              sessionData.session.access_token
+            );
             registeredTeam = result.team;
             emailNotified = result.emailNotified;
           } catch (error) {

@@ -17,13 +17,18 @@ type TeamRecord = {
   members: string[];
   captain: string;
   invite_token: string;
+  captain_user_id: string | null;
   logo_data: string | null;
   discord_name: string | null;
   player_name: string | null;
   tracker_url: string | null;
   rank: string | null;
 };
-type Team = TeamSubmission & { id: string; invite_token: string };
+type Team = TeamSubmission & {
+  id: string;
+  invite_token?: string;
+  captain_user_id?: string;
+};
 
 function isLogoData(value: unknown): value is string {
   return typeof value === "string"
@@ -83,7 +88,7 @@ function response(body: Record<string, unknown>, status: number, origin: string)
     headers: {
       "Content-Type": "application/json",
       "Access-Control-Allow-Origin": origin,
-      "Access-Control-Allow-Headers": "content-type",
+      "Access-Control-Allow-Headers": "authorization, content-type",
       "Access-Control-Allow-Methods": "POST, OPTIONS",
       "Vary": "Origin"
     }
@@ -101,6 +106,8 @@ function isTeamRecord(value: unknown): value is TeamRecord {
     || !("invite_token" in value)
     || typeof value.id !== "string"
     || typeof value.invite_token !== "string"
+    || !("captain_user_id" in value)
+    || !(value.captain_user_id === null || typeof value.captain_user_id === "string")
     || typeof value.name !== "string"
     || typeof value.captain !== "string"
     || !Array.isArray(value.members)
@@ -122,19 +129,75 @@ function isTeamRecord(value: unknown): value is TeamRecord {
   return true;
 }
 
-function toClientTeam(record: TeamRecord): Team {
-  return {
+function toClientTeam(record: TeamRecord, includeInviteCredentials: boolean): Team {
+  const team: Team = {
     id: record.id,
     name: record.name,
     members: record.members,
     captain: record.captain,
-    invite_token: record.invite_token,
     logoData: record.logo_data || "",
     discordName: record.discord_name || "",
     playerName: record.player_name || "",
     trackerUrl: record.tracker_url || "",
     rank: record.rank || ""
   };
+  if (includeInviteCredentials && record.captain_user_id) {
+    team.invite_token = record.invite_token;
+    team.captain_user_id = record.captain_user_id;
+  }
+  return team;
+}
+
+async function getDiscordCaptainId(
+  supabaseUrl: string,
+  serviceRoleKey: string,
+  accessToken: string
+): Promise<{ userId: string } | { error: string; status: number }> {
+  let authResponse: Response;
+  try {
+    authResponse = await fetch(`${supabaseUrl}/auth/v1/user`, {
+      headers: {
+        "apikey": serviceRoleKey,
+        "Authorization": `Bearer ${accessToken}`
+      }
+    });
+  } catch (error) {
+    console.error("Could not verify the Discord session:", error);
+    return { error: "Could not verify the captain's Discord session.", status: 502 };
+  }
+
+  if (!authResponse.ok) {
+    return { error: "A valid Discord sign-in is required to create a team.", status: 401 };
+  }
+
+  let user: unknown;
+  try {
+    user = await authResponse.json();
+  } catch (error) {
+    console.error("Supabase Auth returned invalid user data:", error);
+    return { error: "Could not verify the captain's Discord session.", status: 502 };
+  }
+  if (
+    typeof user !== "object"
+    || user === null
+    || !("id" in user)
+    || typeof user.id !== "string"
+    || !("app_metadata" in user)
+    || typeof user.app_metadata !== "object"
+    || user.app_metadata === null
+  ) {
+    console.error("Supabase Auth returned an invalid user.");
+    return { error: "Could not verify the captain's Discord session.", status: 502 };
+  }
+
+  const metadata = user.app_metadata;
+  const hasDiscordProvider = ("provider" in metadata && metadata.provider === "discord")
+    || ("providers" in metadata && Array.isArray(metadata.providers) && metadata.providers.includes("discord"));
+  if (!hasDiscordProvider) {
+    return { error: "Sign in with Discord to create a team and manage its invitation.", status: 403 };
+  }
+
+  return { userId: user.id };
 }
 
 Deno.serve(async (request) => {
@@ -152,7 +215,7 @@ Deno.serve(async (request) => {
     return new Response(null, {
       headers: {
         "Access-Control-Allow-Origin": allowedOrigin,
-        "Access-Control-Allow-Headers": "content-type",
+        "Access-Control-Allow-Headers": "authorization, content-type",
         "Access-Control-Allow-Methods": "POST, OPTIONS",
         "Vary": "Origin"
       }
@@ -190,9 +253,19 @@ Deno.serve(async (request) => {
   let event: "created" | "joined" | "none";
 
   if (payload.action === "create" && "team" in payload && isTeamSubmission(payload.team)) {
+    const authorization = request.headers.get("authorization");
+    const accessToken = authorization?.match(/^Bearer\s+(.+)$/i)?.[1];
+    if (!accessToken) {
+      return response({ error: "Sign in with Discord to create a team." }, 401, allowedOrigin);
+    }
+    const captainIdentity = await getDiscordCaptainId(supabaseUrl, serviceRoleKey, accessToken);
+    if ("error" in captainIdentity) {
+      return response({ error: captainIdentity.error }, captainIdentity.status, allowedOrigin);
+    }
+
     let databaseResponse: Response;
     try {
-      databaseResponse = await fetch(`${supabaseUrl}/rest/v1/phantom_teams?select=id,name,members,captain,invite_token,logo_data,discord_name,player_name,tracker_url,rank`, {
+      databaseResponse = await fetch(`${supabaseUrl}/rest/v1/phantom_teams?select=id,name,members,captain,invite_token,captain_user_id,logo_data,discord_name,player_name,tracker_url,rank`, {
         method: "POST",
         headers: {
           "apikey": serviceRoleKey,
@@ -204,6 +277,7 @@ Deno.serve(async (request) => {
           name: payload.team.name.trim(),
           members: payload.team.members.map((member) => member.trim()),
           captain: payload.team.captain.trim(),
+          captain_user_id: captainIdentity.userId,
           logo_data: payload.team.logoData,
           discord_name: payload.team.discordName.trim(),
           player_name: payload.team.playerName.trim(),
@@ -226,7 +300,7 @@ Deno.serve(async (request) => {
       console.error("Supabase returned an invalid team after creation.");
       return response({ error: "Could not confirm team registration." }, 502, allowedOrigin);
     }
-    team = toClientTeam(teams[0]);
+    team = toClientTeam(teams[0], true);
     event = "created";
   } else if (
     payload.action === "join"
@@ -268,7 +342,7 @@ Deno.serve(async (request) => {
       console.error("Supabase returned an invalid team after joining.");
       return response({ error: "Could not confirm team membership." }, 502, allowedOrigin);
     }
-    const joinedTeam = { ...toClientTeam(joinedTeams[0]), added: joinedTeams[0].added };
+    const joinedTeam = { ...toClientTeam(joinedTeams[0], false), added: joinedTeams[0].added };
     team = joinedTeam;
     event = joinedTeam.added ? "joined" : "none";
   } else {
