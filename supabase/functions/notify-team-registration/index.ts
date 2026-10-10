@@ -1,9 +1,45 @@
 const recipient = "juanojeda0219@gmail.com";
 const uuidPattern = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
-type TeamSubmission = { name: string; members: string[]; captain: string };
+type TeamSubmission = {
+  name: string;
+  members: string[];
+  captain: string;
+  logoData: string;
+  discordName: string;
+  playerName: string;
+  trackerUrl: string;
+  rank: string;
+};
+type TeamRecord = {
+  id: string;
+  name: string;
+  members: string[];
+  captain: string;
+  invite_token: string;
+  logo_data: string | null;
+  discord_name: string | null;
+  player_name: string | null;
+  tracker_url: string | null;
+  rank: string | null;
+};
 type Team = TeamSubmission & { id: string; invite_token: string };
-type JoinedTeam = Team & { added: boolean };
+
+function isLogoData(value: unknown): value is string {
+  return typeof value === "string"
+    && value.length <= 700000
+    && /^data:image\/(png|webp);base64,[A-Za-z0-9+/]+={0,2}$/i.test(value);
+}
+
+function isHttpUrl(value: string): boolean {
+  try {
+    const url = new URL(value);
+    return (url.protocol === "http:" || url.protocol === "https:")
+      && value.length <= 500;
+  } catch {
+    return false;
+  }
+}
 
 function isTeamSubmission(value: unknown): value is TeamSubmission {
   if (
@@ -22,6 +58,18 @@ function isTeamSubmission(value: unknown): value is TeamSubmission {
     || value.members.some((member: string) => member.trim().length > 60)
     || new Set(value.members.map((member: string) => member.trim().toLowerCase())).size !== value.members.length
     || typeof value.captain !== "string"
+    || !isLogoData(value.logoData)
+    || typeof value.discordName !== "string"
+    || value.discordName.trim().length === 0
+    || value.discordName.trim().length > 80
+    || typeof value.playerName !== "string"
+    || value.playerName.trim().length === 0
+    || value.playerName.trim().length > 80
+    || typeof value.trackerUrl !== "string"
+    || !isHttpUrl(value.trackerUrl.trim())
+    || typeof value.rank !== "string"
+    || value.rank.trim().length === 0
+    || value.rank.trim().length > 60
   ) {
     return false;
   }
@@ -42,7 +90,7 @@ function response(body: Record<string, unknown>, status: number, origin: string)
   });
 }
 
-function isTeam(value: unknown): value is Team {
+function isTeamRecord(value: unknown): value is TeamRecord {
   if (
     typeof value !== "object"
     || value === null
@@ -57,6 +105,16 @@ function isTeam(value: unknown): value is Team {
     || typeof value.captain !== "string"
     || !Array.isArray(value.members)
     || !value.members.every((member: unknown) => typeof member === "string")
+    || !("logo_data" in value)
+    || !(value.logo_data === null || isLogoData(value.logo_data))
+    || !("discord_name" in value)
+    || !(value.discord_name === null || typeof value.discord_name === "string")
+    || !("player_name" in value)
+    || !(value.player_name === null || typeof value.player_name === "string")
+    || !("tracker_url" in value)
+    || !(value.tracker_url === null || (typeof value.tracker_url === "string" && isHttpUrl(value.tracker_url)))
+    || !("rank" in value)
+    || !(value.rank === null || typeof value.rank === "string")
   ) {
     return false;
   }
@@ -64,8 +122,19 @@ function isTeam(value: unknown): value is Team {
   return true;
 }
 
-function isJoinedTeam(value: unknown): value is JoinedTeam {
-  return isTeam(value) && "added" in value && typeof value.added === "boolean";
+function toClientTeam(record: TeamRecord): Team {
+  return {
+    id: record.id,
+    name: record.name,
+    members: record.members,
+    captain: record.captain,
+    invite_token: record.invite_token,
+    logoData: record.logo_data || "",
+    discordName: record.discord_name || "",
+    playerName: record.player_name || "",
+    trackerUrl: record.tracker_url || "",
+    rank: record.rank || ""
+  };
 }
 
 Deno.serve(async (request) => {
@@ -104,7 +173,7 @@ Deno.serve(async (request) => {
   let payload: unknown;
   try {
     const body = await request.text();
-    if (body.length > 8192) {
+    if (body.length > 750000) {
       return response({ error: "Request is too large." }, 413, allowedOrigin);
     }
     payload = JSON.parse(body);
@@ -123,7 +192,7 @@ Deno.serve(async (request) => {
   if (payload.action === "create" && "team" in payload && isTeamSubmission(payload.team)) {
     let databaseResponse: Response;
     try {
-      databaseResponse = await fetch(`${supabaseUrl}/rest/v1/phantom_teams?select=id,name,members,captain,invite_token`, {
+      databaseResponse = await fetch(`${supabaseUrl}/rest/v1/phantom_teams?select=id,name,members,captain,invite_token,logo_data,discord_name,player_name,tracker_url,rank`, {
         method: "POST",
         headers: {
           "apikey": serviceRoleKey,
@@ -134,7 +203,12 @@ Deno.serve(async (request) => {
         body: JSON.stringify({
           name: payload.team.name.trim(),
           members: payload.team.members.map((member) => member.trim()),
-          captain: payload.team.captain.trim()
+          captain: payload.team.captain.trim(),
+          logo_data: payload.team.logoData,
+          discord_name: payload.team.discordName.trim(),
+          player_name: payload.team.playerName.trim(),
+          tracker_url: payload.team.trackerUrl.trim(),
+          rank: payload.team.rank.trim()
         })
       });
     } catch (error) {
@@ -148,11 +222,11 @@ Deno.serve(async (request) => {
     }
 
     const teams: unknown = await databaseResponse.json();
-    if (!Array.isArray(teams) || !isTeam(teams[0])) {
+    if (!Array.isArray(teams) || !isTeamRecord(teams[0])) {
       console.error("Supabase returned an invalid team after creation.");
       return response({ error: "Could not confirm team registration." }, 502, allowedOrigin);
     }
-    team = teams[0];
+    team = toClientTeam(teams[0]);
     event = "created";
   } else if (
     payload.action === "join"
@@ -190,11 +264,11 @@ Deno.serve(async (request) => {
     }
 
     const joinedTeams: unknown = await databaseResponse.json();
-    if (!Array.isArray(joinedTeams) || !isJoinedTeam(joinedTeams[0])) {
+    if (!Array.isArray(joinedTeams) || !isTeamRecord(joinedTeams[0]) || !("added" in joinedTeams[0]) || typeof joinedTeams[0].added !== "boolean") {
       console.error("Supabase returned an invalid team after joining.");
       return response({ error: "Could not confirm team membership." }, 502, allowedOrigin);
     }
-    const joinedTeam = joinedTeams[0];
+    const joinedTeam = { ...toClientTeam(joinedTeams[0]), added: joinedTeams[0].added };
     team = joinedTeam;
     event = joinedTeam.added ? "joined" : "none";
   } else {
@@ -227,7 +301,11 @@ Deno.serve(async (request) => {
               "",
               `Equipo: ${team.name}`,
               `Integrantes: ${team.members.join(", ")}`,
-              `Capitán: ${team.captain}`
+              `Capitán: ${team.captain}`,
+              `Discord: ${team.discordName}`,
+              `Nombre de juego: ${team.playerName}`,
+              `Rango: ${team.rank}`,
+              `Tracker: ${team.trackerUrl}`
             ].join("\n")
           })
         });

@@ -119,6 +119,13 @@
               <input id="team-name" name="team-name" type="text" maxlength="60" required>
             </div>
 
+            <div class="team-form__field team-form__logo-field" id="team-logo-field">
+              <label for="team-logo">Logo del equipo</label>
+              <input id="team-logo" name="team-logo" type="file" accept="image/png,image/webp" aria-describedby="team-logo-help" required>
+              <p class="team-form__help muted" id="team-logo-help">PNG o WebP con fondo transparente, máximo 500 KB.</p>
+              <img class="team-form__logo-preview" id="team-logo-preview" alt="Vista previa del logo del equipo" hidden>
+            </div>
+
             <div class="team-form__field">
               <label for="team-members" id="team-members-label">Integrantes</label>
               <textarea id="team-members" name="team-members" rows="3" maxlength="300" aria-describedby="team-members-help" required></textarea>
@@ -131,6 +138,29 @@
                 <option value="">Añade integrantes para elegir un capitán</option>
               </select>
             </div>
+
+            <fieldset class="team-form__details" id="team-application-fields">
+              <legend>Perfil competitivo del capitán</legend>
+              <div class="team-form__field">
+                <label for="team-discord">Discord del capitán</label>
+                <input id="team-discord" name="team-discord" type="text" maxlength="80" autocomplete="off" placeholder="usuario o usuario#0000" required>
+              </div>
+
+              <div class="team-form__field">
+                <label for="team-player-name">Nombre de juego del capitán</label>
+                <input id="team-player-name" name="team-player-name" type="text" maxlength="80" autocomplete="off" required>
+              </div>
+
+              <div class="team-form__field">
+                <label for="team-tracker">Tracker del capitán</label>
+                <input id="team-tracker" name="team-tracker" type="url" maxlength="500" placeholder="https://" required>
+              </div>
+
+              <div class="team-form__field">
+                <label for="team-rank">Rango actual del capitán</label>
+                <input id="team-rank" name="team-rank" type="text" maxlength="60" placeholder="Escribe tu rango actual" required>
+              </div>
+            </fieldset>
 
             <button class="btn btn--primary btn--lg" type="submit">Crear mi equipo</button>
             <p class="team-form__status" id="team-status" role="status" aria-live="polite"></p>
@@ -418,10 +448,18 @@
   <script>
     (() => {
       const storageKey = "phantom-teams";
-      const notificationEndpoint = "";
+      const notificationEndpoint = "https://jlyqgwpyozpeewgjaykv.supabase.co/functions/v1/notify-team-registration";
       const form = document.getElementById("team-form");
       const teamNameInput = document.getElementById("team-name");
       const teamNameField = document.getElementById("team-name-field");
+      const teamLogoInput = document.getElementById("team-logo");
+      const teamLogoField = document.getElementById("team-logo-field");
+      const teamLogoPreview = document.getElementById("team-logo-preview");
+      const applicationFields = document.getElementById("team-application-fields");
+      const teamDiscordInput = document.getElementById("team-discord");
+      const teamPlayerNameInput = document.getElementById("team-player-name");
+      const teamTrackerInput = document.getElementById("team-tracker");
+      const teamRankInput = document.getElementById("team-rank");
       const teamMembersInput = document.getElementById("team-members");
       const teamMembersLabel = document.getElementById("team-members-label");
       const teamMembersHelp = document.getElementById("team-members-help");
@@ -434,13 +472,59 @@
       const inviteToken = inviteParameters.get("unirse");
       const inviteTeamName = inviteParameters.get("equipo");
       let teams;
+      let logoPreviewUrl;
 
       function isTeam(value) {
         return value
           && typeof value.name === "string"
           && Array.isArray(value.members)
           && value.members.every((member) => typeof member === "string")
-          && (value.captain === undefined || typeof value.captain === "string");
+          && (value.captain === undefined || typeof value.captain === "string")
+          && ["logoData", "discordName", "playerName", "trackerUrl", "rank"]
+            .every((key) => value[key] === undefined || typeof value[key] === "string");
+      }
+
+      function isHttpUrl(value) {
+        try {
+          const url = new URL(value);
+          return url.protocol === "http:" || url.protocol === "https:";
+        } catch {
+          return false;
+        }
+      }
+
+      function readLogoFile(file) {
+        if (!file || !["image/png", "image/webp"].includes(file.type)) {
+          return Promise.reject(new Error("El logo debe ser un archivo PNG o WebP con transparencia."));
+        }
+        if (file.size > 512000) {
+          return Promise.reject(new Error("El logo no puede superar los 500 KB."));
+        }
+
+        return new Promise((resolve, reject) => {
+          const reader = new FileReader();
+          reader.addEventListener("load", () => {
+            if (typeof reader.result !== "string") {
+              reject(new Error("No se pudo leer el archivo del logo."));
+              return;
+            }
+            resolve(reader.result);
+          }, { once: true });
+          reader.addEventListener("error", () => {
+            reject(reader.error || new Error("No se pudo leer el archivo del logo."));
+          }, { once: true });
+          reader.readAsDataURL(file);
+        });
+      }
+
+      function appendTeamDetail(container, label, value) {
+        if (!value) return;
+        const detail = document.createElement("p");
+        detail.className = "team-list__detail";
+        const detailLabel = document.createElement("strong");
+        detailLabel.textContent = `${label}: `;
+        detail.append(detailLabel, document.createTextNode(value));
+        container.append(detail);
       }
 
       function makeInviteLink(team) {
@@ -495,14 +579,44 @@
           const item = document.createElement("li");
           item.className = "team-list__item";
 
+          const heading = document.createElement("div");
+          heading.className = "team-list__heading";
+          if (typeof team.logoData === "string" && /^data:image\/(png|webp);base64,/i.test(team.logoData)) {
+            const logo = document.createElement("img");
+            logo.className = "team-list__logo";
+            logo.src = team.logoData;
+            logo.alt = `Logo de ${team.name}`;
+            heading.append(logo);
+          }
           const name = document.createElement("strong");
+          name.className = "team-list__name";
           name.textContent = team.name;
+          heading.append(name);
+
+          const profile = document.createElement("div");
+          profile.className = "team-list__profile";
           const members = document.createElement("p");
           members.textContent = team.members.join(", ");
           const captain = document.createElement("p");
           captain.textContent = `Capitán: ${team.captain || "Sin asignar"}`;
-
-          item.append(name, members, captain);
+          profile.append(members, captain);
+          appendTeamDetail(profile, "Discord", team.discordName);
+          appendTeamDetail(profile, "Nombre de juego", team.playerName);
+          appendTeamDetail(profile, "Rango actual", team.rank);
+          if (typeof team.trackerUrl === "string" && isHttpUrl(team.trackerUrl)) {
+            const tracker = document.createElement("p");
+            tracker.className = "team-list__detail";
+            const trackerLabel = document.createElement("strong");
+            trackerLabel.textContent = "Tracker: ";
+            const trackerLink = document.createElement("a");
+            trackerLink.href = team.trackerUrl;
+            trackerLink.target = "_blank";
+            trackerLink.rel = "noopener noreferrer";
+            trackerLink.textContent = "Ver perfil";
+            tracker.append(trackerLabel, trackerLink);
+            profile.append(tracker);
+          }
+          item.append(heading, profile);
           if (typeof team.invite_token === "string") {
             const inviteButton = document.createElement("button");
             inviteButton.className = "btn btn--outline btn--sm team-list__invite";
@@ -540,8 +654,14 @@
 
       if (inviteToken) {
         teamNameField.hidden = true;
+        teamLogoField.hidden = true;
+        applicationFields.hidden = true;
         teamCaptainField.hidden = true;
         teamNameInput.required = false;
+        teamLogoInput.required = false;
+        applicationFields.querySelectorAll("input").forEach((input) => {
+          input.required = false;
+        });
         teamCaptainInput.required = false;
         teamMembersLabel.textContent = "Tu nombre en el equipo";
         teamMembersInput.value = "";
@@ -594,14 +714,59 @@
 
         const name = teamNameInput.value.trim();
         const captain = teamCaptainInput.value;
+        if (!joiningTeam && !name) {
+          status.textContent = "Escribe el nombre del equipo.";
+          teamNameInput.focus();
+          return;
+        }
         if (!joiningTeam && !members.includes(captain)) {
           status.textContent = "Selecciona como capitán a uno de los integrantes.";
           teamCaptainInput.focus();
           return;
         }
 
-        const team = { name, members, captain };
+        const discordName = teamDiscordInput.value.trim();
+        const playerName = teamPlayerNameInput.value.trim();
+        const trackerUrl = teamTrackerInput.value.trim();
+        const rank = teamRankInput.value.trim();
+        if (!joiningTeam && (!discordName || !playerName || !rank)) {
+          status.textContent = "Completa el Discord, el nombre de juego y el rango actual del capitán.";
+          [teamDiscordInput, teamPlayerNameInput, teamRankInput]
+            .find((input) => !input.value.trim())
+            .focus();
+          return;
+        }
+        if (!joiningTeam && !isHttpUrl(trackerUrl)) {
+          status.textContent = "Introduce un enlace de Tracker válido que empiece con http:// o https://.";
+          teamTrackerInput.focus();
+          return;
+        }
+
         submitButton.disabled = true;
+        let logoData = "";
+        if (!joiningTeam) {
+          try {
+            logoData = await readLogoFile(teamLogoInput.files[0]);
+          } catch (error) {
+            status.textContent = error.message;
+            teamLogoInput.focus();
+            submitButton.disabled = false;
+            return;
+          }
+        }
+
+        const team = joiningTeam
+          ? { name, members, captain }
+          : {
+              name,
+              members,
+              captain,
+              logoData,
+              discordName,
+              playerName,
+              trackerUrl,
+              rank
+            };
 
         if (joiningTeam) {
           try {
@@ -706,6 +871,40 @@
         } catch (error) {
           status.textContent += " No se pudo descargar equipos.json.";
           console.error("No se pudo descargar el documento de equipos:", error);
+        }
+      });
+
+      teamLogoInput.addEventListener("change", () => {
+        const [file] = teamLogoInput.files;
+        if (logoPreviewUrl) {
+          URL.revokeObjectURL(logoPreviewUrl);
+          logoPreviewUrl = undefined;
+        }
+        teamLogoPreview.hidden = true;
+        teamLogoPreview.removeAttribute("src");
+        if (!file) return;
+        if (!["image/png", "image/webp"].includes(file.type)) {
+          teamLogoInput.value = "";
+          status.textContent = "El logo debe ser un archivo PNG o WebP con transparencia.";
+          return;
+        }
+        if (file.size > 512000) {
+          teamLogoInput.value = "";
+          status.textContent = "El logo no puede superar los 500 KB.";
+          return;
+        }
+        logoPreviewUrl = URL.createObjectURL(file);
+        teamLogoPreview.src = logoPreviewUrl;
+        teamLogoPreview.hidden = false;
+        status.textContent = "";
+      });
+
+      form.addEventListener("reset", () => {
+        teamLogoPreview.hidden = true;
+        teamLogoPreview.removeAttribute("src");
+        if (logoPreviewUrl) {
+          URL.revokeObjectURL(logoPreviewUrl);
+          logoPreviewUrl = undefined;
         }
       });
 
