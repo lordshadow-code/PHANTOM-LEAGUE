@@ -1,48 +1,97 @@
-# PHANTOM
+# PHANTOM LEAGUE
 
-## Equipos e invitaciones
+Sitio público en GitHub Pages. Los equipos se mantienen como datos versionados en [`equipos.json`](./equipos.json), porque cambian rara vez. El calendario y sus resultados se mantienen en [`partidos.json`](./partidos.json). La página consulta ambos archivos usando la API pública de GitHub Contents; no requiere base de datos, Apps Script, login, claves API ni secretos en el navegador.
 
-Los equipos nuevos se comparten entre dispositivos mediante Supabase. Cada equipo recibe un enlace único para invitar integrantes: al abrirlo, la persona escribe su nombre y su Tracker y se incorpora al equipo compartido. Al crear el equipo, se solicita el Tracker de cada integrante. El capitán inicia sesión con Discord para registrar el equipo y consultar su enlace privado. El Discord del capitán se guarda en Supabase, no se envía a los navegadores de los capitanes ni integrantes y solo aparece en el panel de administración después de validar la cuenta Discord autorizada en el servidor. La postulación también guarda el nombre del equipo, integrantes, capitán, logo PNG/WebP, nombre de juego y rango actual del capitán. Si se configura Resend, cada alta de equipo y cada nuevo integrante genera un correo a `juanojeda0219@gmail.com`; el correo no incluye el Discord.
+## Cómo se actualizan los datos
 
-La página sigue funcionando en modo local si no se configura `notificationEndpoint`, pero en ese modo las invitaciones compartidas no están disponibles.
+### Equipos — `equipos.json`
 
-### Configuración de Supabase y Resend
+Edita `equipos.json` en el repositorio y crea un commit en `main`. GitHub Pages publicará la nueva lista después de ejecutar el workflow.
 
-1. Crea un proyecto en Supabase. Resend es opcional y solo se necesita para recibir avisos por correo; si se usa, verifica el dominio que usarás como remitente.
-2. Configura Discord OAuth:
-   - En Discord Developer Portal, crea una aplicación y añade como OAuth2 redirect URL `https://jlyqgwpyozpeewgjaykv.supabase.co/auth/v1/callback`.
-   - En Supabase → Authentication → Sign In / Providers → Discord, habilita Discord y configura el Client ID y Client Secret de esa aplicación.
-   - En Supabase → Authentication → URL Configuration, permite `https://lordshadow-code.github.io/PHANTOM-LEAGUE/` como redirect URL.
-   - Mantén el Client Secret solo en Supabase; nunca lo publiques ni lo añadas al frontend.
-3. Instala Supabase CLI, inicia sesión y vincula el proyecto. Desde la raíz del repositorio, aplica las migraciones que crean la tabla compartida, los campos de postulación, la propiedad del capitán, los Trackers de integrantes y la operación segura para unirse:
+Formato:
 
-   ```powershell
-   supabase login
-   supabase link --project-ref jlyqgwpyozpeewgjaykv
-   supabase db push
-   ```
+```json
+{
+  "version": 1,
+  "teams": [
+    {
+      "id": "midnight-crew",
+      "name": "Midnight Crew",
+      "captain": "Nombre del capitán",
+      "members": ["Jugador 1", "Jugador 2"],
+      "logo": "images/midnight-crew.svg",
+      "playerName": "Nombre de juego del capitán",
+      "rank": "Rango actual",
+      "trackers": {
+        "Jugador 1": "https://tracker.example/perfil-1",
+        "Jugador 2": "https://tracker.example/perfil-2"
+      },
+      "active": true
+    }
+  ]
+}
+```
 
-4. En **Supabase → Project Settings → API**, copia la clave `service_role` y configúrala como secreto (nunca la pongas en el JavaScript del sitio ni la publiques). La función valida y limita los logos a PNG/WebP de hasta 500 KB:
+Campos requeridos: `id` único, `name`, `captain` y `members` (lista de nombres). Los demás son opcionales:
 
-   ```powershell
-   supabase secrets set SUPABASE_SERVICE_ROLE_KEY=<SERVICE_ROLE_KEY> ALLOWED_ORIGIN=https://lordshadow-code.github.io
-   supabase secrets set PHANTOM_ADMIN_DISCORD_ID=<DISCORD_USER_ID>
-   supabase functions deploy notify-team-registration
-   ```
+- `logo`: URL HTTPS o ruta pública del repositorio, por ejemplo `images/mi-equipo.svg`.
+- `playerName` y `rank`: texto que aparece en la ficha del equipo.
+- `trackers`: objeto con nombre de integrante como clave y URL HTTP(S) como valor.
+- `active`: `true` por defecto; usa `false` para conservar un equipo en el archivo pero ocultarlo del sitio y de la tabla.
 
-   Configura `PHANTOM_ADMIN_DISCORD_ID` con el ID numérico de la cuenta Discord administradora; se compara en el servidor y no se publica en el frontend. `SUPABASE_URL` lo proporciona Supabase al ejecutar la función. `ALLOWED_ORIGIN` debe ser el origen exacto del sitio publicado (esquema y dominio, sin `/PHANTOM-LEAGUE/`).
-   Para activar correos, configura además `RESEND_API_KEY` y `RESEND_FROM_EMAIL` con un remitente verificado:
+No pongas en este archivo direcciones privadas, credenciales, tokens de invitación ni el Discord privado de capitanes. Todo contenido de `equipos.json` es público. Los IDs de los equipos son referencias estables usadas por `partidos.json`; conserva el ID cuando cambies el nombre.
 
-   ```powershell
-   supabase secrets set RESEND_API_KEY=<RESEND_API_KEY> RESEND_FROM_EMAIL="PHANTOM <noreply@tu-dominio-verificado.com>"
-   ```
-5. La clave pública `publishable` usada por el cliente se configura en `index.html`; es apta para frontend. Nunca añadas la clave `service_role` ni el Client Secret al sitio.
-6. Publica los cambios en GitHub Pages. El endpoint comparte solo el token de invitación con la cuenta Discord que creó el equipo. La acción de unirse no devuelve el token en su respuesta.
+### Partidos y resultados — `partidos.json`
 
-La tabla tiene Row Level Security habilitado y no permite acceso público directo. La función valida la sesión Discord del capitán antes de crear un equipo, y solo entrega Discord y todas las postulaciones a la cuenta administradora configurada. Las operaciones de unión guardan el Tracker de cada nuevo integrante en una transacción protegida y evitan altas duplicadas por enlaces compartidos simultáneamente. Los equipos existentes conservan el Tracker del capitán, pero sus integrantes anteriores deben volver a completar su perfil para añadir los enlaces que faltan. El enlace es transferible: quien lo reciba puede intentar unirse o reenviarlo. CORS no sustituye la protección contra automatización; antes de aceptar tráfico público, configura límites de solicitudes y protección contra spam. Las notificaciones requieren un dominio de remitente verificado en Resend.
+El administrador con permiso de escritura en GitHub abre [`partidos.json`](https://github.com/lordshadow-code/PHANTOM-LEAGUE/edit/main/partidos.json), edita el JSON y confirma el cambio en `main`. No hace falta token de GitHub en el frontend. La página vuelve a consultar el archivo mediante GitHub API cuando se carga.
 
-Los equipos antiguos guardados en `localStorage` no se migran automáticamente a Supabase. Los equipos compartidos creados antes de aplicar la migración de propiedad tampoco quedan vinculados automáticamente a una cuenta Discord y su invitación no se mostrará; registra de nuevo esos equipos con la cuenta Discord del capitán después del despliegue.
+Formato:
 
-## Dar acceso de edición del repositorio
+```json
+{
+  "version": 1,
+  "matches": [
+    {
+      "id": "jornada-1-midnight-vs-neon",
+      "homeTeamId": "midnight-crew",
+      "awayTeamId": "neon-arena",
+      "date": "2026-10-20",
+      "homeMaps": null,
+      "awayMaps": null
+    }
+  ]
+}
+```
 
-El acceso de edición se concede en GitHub, no desde la página publicada: abre `lordshadow-code/PHANTOM-LEAGUE` → **Settings** → **Collaborators** (o **Collaborators and teams**) → **Add people**, busca `juanojeda0219@gmail.com` y envía la invitación con el permiso de escritura adecuado. Debe aceptarla desde su cuenta de GitHub. Esto requiere que quien envía la invitación tenga permisos de administración del repositorio.
+- `id` debe ser único dentro del archivo.
+- `homeTeamId` y `awayTeamId` deben coincidir con IDs de `equipos.json` y no pueden ser iguales.
+- `date` usa `AAAA-MM-DD`.
+- Partido pendiente: `homeMaps` y `awayMaps` son ambos `null`.
+- Resultado final: ambos son enteros de 0 a 99, por ejemplo `2` y `1`. No dejes un solo marcador vacío.
+- Para corregir o retirar un partido, edita o elimina el objeto y confirma el cambio. El historial permanece en Git.
+
+Puntuación: victoria = 3 puntos, empate = 1 punto para cada equipo, derrota = 0. La clasificación desempata por puntos, diferencia global de mapas, mini-tabla de enfrentamientos directos entre los equipos igualados y diferencia de mapas en esa mini-tabla. Si persiste el empate, se ordenan alfabéticamente.
+
+## Arquitectura y publicación
+
+- `index.html`: frontend público; lee los dos JSON desde `https://api.github.com/repos/lordshadow-code/PHANTOM-LEAGUE/contents/{archivo}?ref=main`.
+- `equipos.json`: lista pública de equipos.
+- `partidos.json`: calendario y resultados públicos.
+- `css/style.css` e `images/`: presentación del sitio.
+- `.github/workflows/pages.yml`: publicación de GitHub Pages al hacer push a `main`.
+
+La API de GitHub para repositorios públicos no usa token de lectura, pero tiene límite de solicitudes anónimas. El sitio hace una solicitud por cada JSON al cargar. Si el repositorio se vuelve privado o se agota el límite, aparecerá un error de lectura; no se publican datos locales como alternativa silenciosa.
+
+Las escrituras se hacen autenticándose en GitHub y confirmando un cambio en el repositorio. El botón del sitio abre la edición de `partidos.json`; GitHub aplica los permisos normales de colaboradores. No se incluye escritura API desde el navegador porque eso requeriría exponer una credencial con permiso de escritura.
+
+## Migración desde los registros de equipos anteriores
+
+Si todavía necesitas los equipos guardados en la tabla Supabase `phantom_teams`, exporta esos registros y transforma cada fila al formato de `equipos.json`:
+
+- `id` → usa un ID corto, estable y único; actualiza a la vez los IDs referenciados en `partidos.json`.
+- `name`, `captain`, `members`, `player_name`, `rank` → `name`, `captain`, `members`, `playerName`, `rank`.
+- `logo_data`: es preferible guardar cada imagen como archivo en `images/` y usar su ruta en `logo`.
+- `member_trackers`: mapéalo a `trackers`. Conserva únicamente los datos que quieres exponer públicamente.
+- No copies `discord_name`, `captain_user_id`, `invite_token` ni emails al archivo público.
+
+No se importan cuentas Discord, propiedad de capitán, sesiones ni enlaces de invitación antiguos: esta versión es pública y de solo lectura. Verifica la lista exportada antes de hacer commit.
