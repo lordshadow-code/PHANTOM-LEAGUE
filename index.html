@@ -27,7 +27,6 @@
         <a href="#equipos">Equipos</a>
         <a href="#estadisticas">Estadísticas</a>
       </nav>
-      <a class="button button-small button-outline header-admin" href="#administracion">Panel admin <span>↗</span></a>
     </div>
   </header>
 
@@ -135,50 +134,12 @@
       <div class="container community-inner"><div><p class="eyebrow"><span class="eyebrow-line"></span> JOIN THE COMMUNITY</p><h2>Tu próxima victoria<br><span>empieza aquí.</span></h2><p>Forma parte de la comunidad, encuentra compañeros y sigue cada movimiento de la liga.</p></div><a class="button button-primary" href="https://discord.gg/HqdPqgUUj" target="_blank" rel="noopener noreferrer">Unirme a Discord <span>↗</span></a></div>
     </section>
 
-    <section class="section admin-section" id="administracion">
-      <div class="container">
-        <div class="section-heading">
-          <div><p class="eyebrow"><span class="eyebrow-line"></span> LEAGUE CONTROL</p><h2>Panel de <span>administración</span></h2><p class="section-description">Prepara cambios de equipos y resultados sin compartir credenciales en el navegador.</p></div>
-          <span class="security-chip">⌑ SIN TOKENS EN EL FRONTEND</span>
-        </div>
-        <div class="admin-warning"><strong>Importante:</strong> este panel prepara y descarga archivos JSON en tu dispositivo; no publica cambios automáticamente. Después debes subir el archivo a GitHub y confirmar el commit. Así se mantienen los permisos y el historial del repositorio.</div>
-        <div class="admin-grid">
-          <form class="panel admin-form" id="match-form">
-            <div class="panel-top"><div><span class="panel-kicker">MATCH CONTROL</span><h3>Registrar partido</h3></div><span class="form-icon">⚔</span></div>
-            <label>ID único del partido<input name="matchId" placeholder="jornada-1-equipo-a-vs-equipo-b" required minlength="3"></label>
-            <div class="form-row"><label>Equipo local<select name="homeTeam" id="home-team" required><option value="">Cargando equipos…</option></select></label><label>Equipo visitante<select name="awayTeam" id="away-team" required><option value="">Cargando equipos…</option></select></label></div>
-            <label>Fecha del partido<input name="matchDate" type="date" required></label>
-            <div class="form-row"><label>Mapas local<input name="homeMaps" type="number" min="0" max="99" step="1" placeholder="Vacío = pendiente"></label><label>Mapas visitante<input name="awayMaps" type="number" min="0" max="99" step="1" placeholder="Vacío = pendiente"></label></div>
-            <p class="form-hint">Deja ambos marcadores vacíos para crear un partido pendiente. Si escribes uno, debes completar ambos.</p>
-            <button class="button button-primary button-full" type="submit">Preparar partido <span>＋</span></button>
-          </form>
-          <form class="panel admin-form" id="team-form">
-            <div class="panel-top"><div><span class="panel-kicker">ROSTER CONTROL</span><h3>Agregar equipo</h3></div><span class="form-icon">◈</span></div>
-            <label>ID único del equipo<input name="teamId" placeholder="nombre-del-equipo" required minlength="2"></label>
-            <label>Nombre del equipo<input name="teamName" placeholder="Nombre de la escuadra" required></label>
-            <label>Capitán<input name="captain" placeholder="Debe aparecer también en integrantes" required></label>
-            <label>Integrantes <small>(separados por comas)</small><textarea name="members" rows="3" placeholder="Jugador 1, Jugador 2, Jugador 3" required></textarea></label>
-            <div class="form-row"><label>Nombre en juego<input name="playerName" placeholder="Opcional"></label><label>Rango<input name="rank" placeholder="Opcional"></label></div>
-            <label>Logo HTTPS o ruta pública<input name="logo" placeholder="images/mi-equipo.png"></label>
-            <button class="button button-primary button-full" type="submit">Preparar equipo <span>＋</span></button>
-          </form>
-        </div>
-        <div class="panel export-panel">
-          <div class="panel-top"><div><span class="panel-kicker">EXPORT & PUBLISH</span><h3>Archivos listos para GitHub</h3></div><span class="form-icon">⇩</span></div>
-          <p class="section-description">Los cambios preparados se incorporan a los datos cargados. Descarga el archivo correspondiente y reemplaza el JSON en tu repositorio.</p>
-          <div class="export-actions"><button class="button button-outline" id="download-matches" type="button">Descargar partidos.json <span>↓</span></button><button class="button button-outline" id="download-teams" type="button">Descargar equipos.json <span>↓</span></button><a class="button button-primary" href="https://github.com/lordshadow-code/PHANTOM-LEAGUE" target="_blank" rel="noopener noreferrer">Abrir repositorio <span>↗</span></a></div>
-          <div id="admin-status" class="admin-status" role="status" aria-live="polite">Cargando datos del repositorio…</div>
-          <div class="github-edit-links"><a href="https://github.com/lordshadow-code/PHANTOM-LEAGUE/edit/main/partidos.json" target="_blank" rel="noopener noreferrer">Editar partidos.json directamente en GitHub ↗</a><a href="https://github.com/lordshadow-code/PHANTOM-LEAGUE/edit/main/equipos.json" target="_blank" rel="noopener noreferrer">Editar equipos.json directamente en GitHub ↗</a></div>
-        </div>
-      </div>
-    </section>
-
     <section class="faq-section">
-      <div class="container faq-inner"><div><p class="eyebrow"><span class="eyebrow-line"></span> RULEBOOK</p><h2>Reglas <span>claras.</span></h2><p class="section-description">Una clasificación transparente para toda la comunidad.</p></div><div class="faq-list"><details><summary>¿Cómo se calcula la clasificación?<span>＋</span></summary><p>Una victoria suma 3 puntos, un empate 1 y una derrota 0. Los desempates se resuelven por puntos, diferencia global de mapas, enfrentamiento directo entre los equipos igualados y diferencia de mapas en ese enfrentamiento. Si persiste el empate, se ordena por nombre.</p></details><details><summary>¿Cómo registro un resultado?<span>＋</span></summary><p>Usa el panel para preparar el partido, descarga partidos.json y súbelo al repositorio. También puedes editar el archivo directamente en GitHub. Los cambios publicados se reflejan cuando la web vuelve a cargar los datos.</p></details><details><summary>¿El panel publica automáticamente?<span>＋</span></summary><p>No. GitHub Pages es un alojamiento estático. Este panel genera archivos para que un colaborador autorizado los revise y confirme. No se guardan tokens de escritura ni contraseñas en el navegador.</p></details></div></div>
+      <div class="container faq-inner"><div><p class="eyebrow"><span class="eyebrow-line"></span> RULEBOOK</p><h2>Reglas <span>claras.</span></h2><p class="section-description">Una clasificación transparente para toda la comunidad.</p></div><div class="faq-list"><details><summary>¿Cómo se calcula la clasificación?<span>＋</span></summary><p>Una victoria suma 3 puntos, un empate 1 y una derrota 0. Los desempates se resuelven por puntos, diferencia global de mapas, enfrentamiento directo entre los equipos igualados y diferencia de mapas en ese enfrentamiento. Si persiste el empate, se ordena por nombre.</p></details><details><summary>¿Cómo se actualizan los partidos y equipos?<span>＋</span></summary><p>El dueño del repositorio actualiza <code>partidos.json</code> y <code>equipos.json</code> desde GitHub. La web pública solo muestra los datos publicados y no incluye un panel de administración.</p></details></div></div>
     </section>
   </main>
 
-  <footer class="site-footer"><div class="container footer-inner"><a href="#inicio" class="brand footer-brand"><span class="brand-mark">P<span>✦</span></span><span class="brand-word">PHANTOM <b>LEAGUE</b><small>JUEGA · COMPITE · DESTACA</small></span></a><p>La arena es de quienes se atreven.</p><div class="footer-links"><a href="#clasificacion">Clasificación</a><a href="#administracion">Administración</a><a href="https://github.com/lordshadow-code/PHANTOM-LEAGUE" target="_blank" rel="noopener noreferrer">GitHub ↗</a></div><small class="copyright">© <span id="current-year"></span> PHANTOM LEAGUE · HECHO PARA COMPETIR</small></div></footer>
+  <footer class="site-footer"><div class="container footer-inner"><a href="#inicio" class="brand footer-brand"><span class="brand-mark">P<span>✦</span></span><span class="brand-word">PHANTOM <b>LEAGUE</b><small>JUEGA · COMPITE · DESTACA</small></span></a><p>La arena es de quienes se atreven.</p><div class="footer-links"><a href="#clasificacion">Clasificación</a><a href="https://github.com/lordshadow-code/PHANTOM-LEAGUE" target="_blank" rel="noopener noreferrer">GitHub ↗</a></div><small class="copyright">© <span id="current-year"></span> PHANTOM LEAGUE · HECHO PARA COMPETIR</small></div></footer>
   <div id="page-status" class="page-status" role="status" aria-live="polite"></div>
 </body>
 </html>

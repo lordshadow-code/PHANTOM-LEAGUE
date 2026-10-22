@@ -8,10 +8,7 @@
   const state = {
     teams: [],
     matches: [],
-    allTeams: [],
-    allMatches: [],
-    matchFilter: "all",
-    loaded: false
+    matchFilter: "all"
   };
 
   const $ = (selector, root = document) => root.querySelector(selector);
@@ -24,13 +21,6 @@
     status.className = `page-status show ${type}`;
     window.clearTimeout(announce.timer);
     announce.timer = window.setTimeout(() => status.classList.remove("show"), 3500);
-  }
-
-  function setAdminStatus(message, type = "") {
-    const node = $("#admin-status");
-    if (!node) return;
-    node.textContent = message;
-    node.className = `admin-status ${type}`.trim();
   }
 
   function decodeBase64Utf8(value) {
@@ -359,127 +349,15 @@
     });
   }
 
-  function populateTeamSelects() {
-    const active = state.teams.filter(team => team.active !== false);
-    ["#home-team", "#away-team"].forEach(selector => {
-      const select = $(selector); if (!select) return;
-      const old = select.value;
-      select.replaceChildren();
-      const placeholder = document.createElement("option"); placeholder.value = ""; placeholder.textContent = active.length ? "Selecciona equipo" : "No hay equipos activos";
-      select.append(placeholder);
-      active.forEach(team => { const option = document.createElement("option"); option.value = team.id; option.textContent = team.name; select.append(option); });
-      if (active.some(team => team.id === old)) select.value = old;
-    });
-  }
-
-  function downloadJson(filename, data) {
-    const blob = new Blob([JSON.stringify(data, null, 2) + "\n"], { type: "application/json;charset=utf-8" });
-    const url = URL.createObjectURL(blob);
-    const anchor = document.createElement("a"); anchor.href = url; anchor.download = filename;
-    document.body.append(anchor); anchor.click(); anchor.remove();
-    setTimeout(() => URL.revokeObjectURL(url), 1000);
-  }
-
-  function safeId(value) {
-    return value.trim().toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "")
-      .replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "");
-  }
-
-  function setupAdmin() {
-    $("#match-form").addEventListener("submit", event => {
-      event.preventDefault();
-      if (!state.loaded) { setAdminStatus("Espera a que los datos del repositorio terminen de cargar.", "error"); return; }
-      const form = new FormData(event.currentTarget);
-      const id = String(form.get("matchId")).trim();
-      const homeTeamId = String(form.get("homeTeam"));
-      const awayTeamId = String(form.get("awayTeam"));
-      const date = String(form.get("matchDate"));
-      const homeRaw = String(form.get("homeMaps")).trim();
-      const awayRaw = String(form.get("awayMaps")).trim();
-      if (!id || !homeTeamId || !awayTeamId || !date) { setAdminStatus("Completa el ID, ambos equipos y la fecha.", "error"); return; }
-      if (homeTeamId === awayTeamId) { setAdminStatus("Un equipo no puede jugar contra sí mismo.", "error"); return; }
-      if (state.matches.some(match => match.id === id)) { setAdminStatus("Ese ID de partido ya existe. Usa uno único.", "error"); return; }
-      const bothBlank = homeRaw === "" && awayRaw === "";
-      const bothFilled = homeRaw !== "" && awayRaw !== "";
-      if (!bothBlank && !bothFilled) { setAdminStatus("Escribe ambos marcadores o deja ambos vacíos para pendiente.", "error"); return; }
-      let homeMaps = null, awayMaps = null;
-      if (bothFilled) {
-        homeMaps = Number(homeRaw); awayMaps = Number(awayRaw);
-        if (!Number.isSafeInteger(homeMaps) || !Number.isSafeInteger(awayMaps) || homeMaps < 0 || awayMaps < 0 || homeMaps > 99 || awayMaps > 99) {
-          setAdminStatus("Los marcadores deben ser enteros entre 0 y 99.", "error"); return;
-        }
-      }
-      state.matches.push({ id, homeTeamId, awayTeamId, date, homeMaps, awayMaps });
-      state.allMatches = state.matches;
-      renderMatches(); renderStandings(); renderStats();
-      setAdminStatus(`Partido "${id}" preparado. Descarga partidos.json para publicarlo.`, "success");
-      event.currentTarget.reset();
-      announce("Partido preparado. Descarga partidos.json para guardarlo en GitHub.");
-    });
-
-    $("#team-form").addEventListener("submit", event => {
-      event.preventDefault();
-      if (!state.loaded) { setAdminStatus("Espera a que los datos del repositorio terminen de cargar.", "error"); return; }
-      const form = new FormData(event.currentTarget);
-      const id = String(form.get("teamId")).trim();
-      const name = String(form.get("teamName")).trim();
-      const captain = String(form.get("captain")).trim();
-      const members = [...new Set(String(form.get("members")).split(",").map(value => value.trim()).filter(Boolean))];
-      const playerName = String(form.get("playerName")).trim();
-      const rank = String(form.get("rank")).trim();
-      const logo = String(form.get("logo")).trim();
-      if (!id || !name || !captain || !members.length) { setAdminStatus("Completa el ID, nombre, capitán e integrantes.", "error"); return; }
-      if (state.teams.some(team => team.id === id)) { setAdminStatus("Ese ID de equipo ya existe. Usa un ID único.", "error"); return; }
-      if (!members.some(member => member.toLocaleLowerCase("es") === captain.toLocaleLowerCase("es"))) {
-        setAdminStatus("El capitán debe figurar también en la lista de integrantes.", "error"); return;
-      }
-      if (new Set(members.map(member => member.toLocaleLowerCase("es"))).size !== members.length) {
-        setAdminStatus("Hay integrantes repetidos. Revisa la lista.", "error"); return;
-      }
-      if (logo && !safePublicUrl(logo)) { setAdminStatus("El logo debe ser una URL HTTP(S) o ruta válida del repositorio.", "error"); return; }
-      const team = { id, name, captain, members, active: true };
-      if (logo) team.logo = logo;
-      if (playerName) team.playerName = playerName;
-      if (rank) team.rank = rank;
-      state.teams.push(team);
-      state.allTeams = state.teams;
-      // The schema requires a captain listed among members, matching the current validator.
-      validateTeamsFile({ version: 1, teams: state.teams });
-      validateMatchesFile({ version: 1, matches: state.matches }, state.teams);
-      populateTeamSelects(); renderTeams(); renderStandings(); renderStats();
-      setAdminStatus(`Equipo "${name}" preparado. Descarga equipos.json para publicarlo.`, "success");
-      event.currentTarget.reset();
-      announce("Equipo preparado. Descarga equipos.json para guardarlo en GitHub.");
-    });
-
-    $("#download-matches").addEventListener("click", () => {
-      if (!state.loaded) { setAdminStatus("Los datos todavía no han terminado de cargar.", "error"); return; }
-      downloadJson("partidos.json", { version: 1, matches: state.matches });
-      setAdminStatus("partidos.json descargado. Súbelo al repositorio y confirma el commit.", "success");
-    });
-    $("#download-teams").addEventListener("click", () => {
-      if (!state.loaded) { setAdminStatus("Los datos todavía no han terminado de cargar.", "error"); return; }
-      downloadJson("equipos.json", { version: 1, teams: state.teams });
-      setAdminStatus("equipos.json descargado. Súbelo al repositorio y confirma el commit.", "success");
-    });
-  }
-
   async function loadLeague() {
-    const status = $("#page-status");
-    setAdminStatus("Leyendo equipos.json y partidos.json desde la API pública de GitHub…");
     try {
       const [teamsFile, matchesFile] = await Promise.all([readRepositoryJson("equipos.json"), readRepositoryJson("partidos.json")]);
       const teams = validateTeamsFile(teamsFile);
       const matches = validateMatchesFile(matchesFile, teams);
       state.teams = teams;
       state.matches = matches;
-      state.allTeams = teams;
-      state.allMatches = matches;
-      state.loaded = true;
-      renderStandings(); renderMatches(); renderTeams(); renderStats(); populateTeamSelects();
-      setAdminStatus(`Datos cargados correctamente: ${teams.filter(team => team.active !== false).length} equipos activos y ${matches.length} partidos.`, "success");
+      renderStandings(); renderMatches(); renderTeams(); renderStats();
     } catch (error) {
-      setAdminStatus(`No se pudieron cargar los datos: ${error.message}`, "error");
       $("#standings-body").innerHTML = `<tr><td colspan="9" class="empty-state">${escapeHtml(error.message)}</td></tr>`;
       $("#matches-list").textContent = `No se pudieron cargar los partidos: ${error.message}`;
       $("#team-list").textContent = `No se pudieron cargar los equipos: ${error.message}`;
@@ -514,7 +392,6 @@
 
   document.addEventListener("DOMContentLoaded", () => {
     setupNavigation();
-    setupAdmin();
     loadLeague();
   });
 })();

@@ -6,13 +6,13 @@ Sitio público en GitHub Pages. Los equipos se mantienen como datos versionados 
 
 - [`index.html`](./index.html): estructura de la web.
 - [`css/style.css`](./css/style.css): diseño adaptable con estilo esports negro y morado.
-- [`js/app.js`](./js/app.js): lectura de datos, clasificación, partidos, equipos, estadísticas y panel local de administración.
+- [`js/app.js`](./js/app.js): lectura de datos, clasificación, partidos, equipos y estadísticas.
 - [`equipos.json`](./equipos.json) y [`partidos.json`](./partidos.json): datos públicos con el esquema `version: 1`.
 - [`images/`](./images/): recursos gráficos del sitio, como `trofeo-neon-arena.png`.
 
-## Panel de administración
+## Administración del repositorio
 
-El panel permite preparar partidos y equipos en el navegador y descargar los archivos JSON actualizados. No publica cambios directamente en GitHub ni guarda tokens o credenciales. Revisa el archivo descargado y súbelo al repositorio con una cuenta autorizada. También puedes editar los archivos directamente en GitHub.
+El sitio público no contiene un panel de administración. Solo el dueño del repositorio debe actualizar `equipos.json` y `partidos.json` desde GitHub; el permiso de GitHub protege esos cambios. No se usan tokens ni credenciales en la web.
 
 ## Ejecutar localmente
 
@@ -59,7 +59,7 @@ No pongas en este archivo direcciones privadas, credenciales, tokens de invitaci
 
 ### Partidos y resultados — `partidos.json`
 
-El administrador con permiso de escritura en GitHub abre [`partidos.json`](https://github.com/lordshadow-code/PHANTOM-LEAGUE/edit/main/partidos.json), edita el JSON y confirma el cambio en `main`. No hace falta token de GitHub en el frontend. La página vuelve a consultar el archivo mediante GitHub API cuando se carga.
+El dueño del repositorio abre [`partidos.json`](https://github.com/lordshadow-code/PHANTOM-LEAGUE/edit/main/partidos.json), edita el JSON y confirma el cambio en `main`. No hace falta token de GitHub en el frontend. La página vuelve a consultar el archivo mediante GitHub API cuando se carga.
 
 Formato:
 
