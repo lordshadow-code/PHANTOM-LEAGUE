@@ -2,442 +2,183 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#090711">
+  <meta name="description" content="PHANTOM LEAGUE: clasificación, partidos, equipos y estadísticas de la competición.">
   <title>PHANTOM LEAGUE — Juega. Compite. Destaca.</title>
-  <meta name="description" content="Equipos, partidos y clasificación de PHANTOM LEAGUE.">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="css/style.css">
+  <script src="js/app.js" defer></script>
 </head>
 <body>
+  <div class="topline"><span class="pulse"></span> LIGA COMPETITIVA · TEMPORADA ACTUAL <span class="topline-right">DATOS PÚBLICOS · TRANSPARENCIA TOTAL</span></div>
   <header class="site-header">
-    <div class="container header__inner">
-      <a href="#inicio" class="logo" aria-label="PHANTOM LEAGUE inicio">
-        <span class="logo__mark">⚡</span>
-        <span class="logo__text">PHANTOM <span class="text-accent">LEAGUE</span></span>
+    <div class="container header-inner">
+      <a href="#inicio" class="brand" aria-label="PHANTOM LEAGUE inicio">
+        <span class="brand-mark">P<span>✦</span></span>
+        <span class="brand-word">PHANTOM <b>LEAGUE</b><small>JUEGA · COMPITE · DESTACA</small></span>
       </a>
-      <nav class="main-nav" aria-label="Navegación principal">
-        <ul class="main-nav__list">
-          <li><a href="#clasificacion">Clasificación</a></li>
-          <li><a href="#partidos">Partidos</a></li>
-          <li><a href="#equipos">Equipos</a></li>
-        </ul>
+      <button class="nav-toggle" id="nav-toggle" aria-expanded="false" aria-controls="main-nav" aria-label="Abrir menú">☰</button>
+      <nav id="main-nav" class="main-nav" aria-label="Navegación principal">
+        <a href="#clasificacion">Clasificación</a>
+        <a href="#partidos">Partidos</a>
+        <a href="#equipos">Equipos</a>
+        <a href="#estadisticas">Estadísticas</a>
       </nav>
+      <a class="button button-small button-outline header-admin" href="#administracion">Panel admin <span>↗</span></a>
     </div>
   </header>
 
-  <main>
-    <section class="hero" id="inicio">
-      <div class="container hero__inner">
-        <div class="hero__content">
-          <p class="eyebrow">Competición para todos</p>
-          <h1 class="hero__title">JUEGA. COMPITE. <span class="text-accent">DESTACA.</span></h1>
-          <p class="hero__subtitle">Sigue los partidos y resultados de PHANTOM LEAGUE. La clasificación se actualiza a partir de los marcadores publicados.</p>
-          <div class="hero__actions">
-            <a href="#clasificacion" class="btn btn--primary btn--lg">Ver clasificación</a>
-            <a href="https://github.com/lordshadow-code/PHANTOM-LEAGUE/edit/main/partidos.json" class="btn btn--outline btn--lg" target="_blank" rel="noopener noreferrer">Editar partidos en GitHub</a>
+  <main id="inicio">
+    <section class="hero">
+      <div class="hero-grid"></div>
+      <div class="hero-orb orb-one"></div><div class="hero-orb orb-two"></div>
+      <div class="container hero-inner">
+        <div class="hero-copy">
+          <p class="eyebrow"><span class="eyebrow-line"></span> COMPETICIÓN PARA TODOS</p>
+          <h1>EL JUEGO<br>CAMBIA.<br><span>LA LEYENDA</span><br>PERMANECE.</h1>
+          <p class="hero-subtitle">Cada ronda cuenta. Cada victoria deja huella. Sigue el recorrido de los equipos que compiten por la cima de PHANTOM LEAGUE.</p>
+          <div class="hero-actions">
+            <a class="button button-primary" href="#clasificacion">Ver clasificación <span>↘</span></a>
+            <a class="button button-ghost" href="#partidos">Explorar partidos <span>→</span></a>
           </div>
-          <div class="hero__meta" aria-label="Estadísticas de la liga">
-            <div><span class="hero__meta-value" id="team-count">—</span><span class="hero__meta-label">Equipos activos</span></div>
-            <div><span class="hero__meta-value" id="played-count">—</span><span class="hero__meta-label">Partidos jugados</span></div>
-            <div><span class="hero__meta-value">3 / 1 / 0</span><span class="hero__meta-label">Victoria / empate / derrota</span></div>
+          <div class="hero-stats">
+            <div><strong id="hero-team-count">—</strong><span>EQUIPOS ACTIVOS</span></div>
+            <div><strong id="hero-played-count">—</strong><span>PARTIDOS JUGADOS</span></div>
+            <div><strong id="hero-upcoming-count">—</strong><span>POR JUGAR</span></div>
           </div>
         </div>
-        <figure class="hero__visual">
-          <img src="images/trofeo-neon-arena.png" alt="Trofeo de PHANTOM Arena" loading="eager">
-          <figcaption class="hero__badge"><span class="hero__badge-title">PHANTOM</span><span class="hero__badge-sub">LEAGUE</span></figcaption>
-        </figure>
+        <div class="hero-art" aria-label="Emblema de PHANTOM LEAGUE">
+          <div class="art-ring ring-a"></div><div class="art-ring ring-b"></div><div class="art-ring ring-c"></div>
+          <img class="hero-image" src="images/trofeo-neon-arena.png" alt="Trofeo de PHANTOM LEAGUE" loading="eager">
+          <div class="art-tag tag-top">SEASON <b>01</b></div>
+          <div class="art-tag tag-bottom"><span class="pulse"></span> LEAGUE ONLINE</div>
+          <div class="art-cross cross-one">＋</div><div class="art-cross cross-two">＋</div>
+        </div>
       </div>
-      <div class="container">
-        <ul class="claims">
-          <li class="claim"><span class="claim__icon">🏆</span><span class="claim__label">Competición para todos</span></li>
-          <li class="claim"><span class="claim__icon">🌐</span><span class="claim__label">Equipos sin fronteras</span></li>
-          <li class="claim"><span class="claim__icon">📊</span><span class="claim__label">Resultados transparentes</span></li>
-        </ul>
+      <div class="hero-bottom container"><span>01 / THE ARENA</span><span>LA COMPETICIÓN EMPIEZA AQUÍ</span><span class="scroll-label">SCROLL ↓</span></div>
+    </section>
+
+    <section class="quick-strip">
+      <div class="container quick-strip-inner">
+        <div><span class="strip-icon">✦</span><span>JUEGO LIMPIO</span></div>
+        <div><span class="strip-icon">⌁</span><span>RESULTADOS TRANSPARENTES</span></div>
+        <div><span class="strip-icon">◈</span><span>UNA SOLA COMUNIDAD</span></div>
+        <div><span class="strip-icon">↗</span><span>SUBE EN LA CLASIFICACIÓN</span></div>
       </div>
     </section>
 
-    <section class="section league-section" id="clasificacion">
+    <section class="section" id="clasificacion">
       <div class="container">
-        <header class="section-head">
-          <p class="eyebrow">Tabla de posiciones</p>
-          <h2>Clasificación</h2>
-          <p class="muted">Victoria: 3 puntos · Empate: 1 punto · Derrota: 0 puntos.</p>
-        </header>
-        <div class="table-scroll">
-          <table class="leaderboard__table">
-            <thead><tr>
-              <th scope="col">#</th><th scope="col">Equipo</th><th scope="col">JJ</th>
-              <th scope="col">G</th><th scope="col">E</th><th scope="col">P</th>
-              <th scope="col">Mapas</th><th scope="col">Dif.</th><th scope="col">Pts.</th>
-            </tr></thead>
-            <tbody id="standings-body"><tr><td colspan="9" class="empty-state">Cargando clasificación…</td></tr></tbody>
-          </table>
+        <div class="section-heading">
+          <div><p class="eyebrow"><span class="eyebrow-line"></span> THE LEADERBOARD</p><h2>Tabla de <span>clasificación</span></h2><p class="section-description">Cada punto importa. Sigue la carrera por el primer puesto.</p></div>
+          <div class="heading-side"><span class="live-dot"></span> ACTUALIZADO DESDE GITHUB</div>
+        </div>
+        <div class="panel leaderboard-panel">
+          <div class="panel-top"><div><span class="panel-kicker">RANKING OFICIAL</span><h3>Posiciones de la liga</h3></div><span class="panel-chip">3 PTS · VICTORIA</span></div>
+          <div class="table-scroll">
+            <table class="leaderboard-table">
+              <thead><tr><th>#</th><th>Equipo</th><th>JJ</th><th>V</th><th>E</th><th>D</th><th>Mapas</th><th>Dif.</th><th>Pts.</th></tr></thead>
+              <tbody id="standings-body"><tr><td colspan="9" class="empty-state">Cargando clasificación…</td></tr></tbody>
+            </table>
+          </div>
+          <div class="panel-bottom"><span>JJ: jugados · V: victorias · E: empates · D: derrotas</span><span>DESEMPATE: DIFERENCIA → ENFRENTAMIENTO DIRECTO → NOMBRE</span></div>
         </div>
       </div>
     </section>
 
     <section class="section matches-section" id="partidos">
       <div class="container">
-        <header class="section-head">
-          <p class="eyebrow">Calendario manual</p>
-          <h2>Partidos y resultados</h2>
-          <p class="muted">Los encuentros y sus marcadores se mantienen en el archivo del repositorio.</p>
-        </header>
-        <div id="matches-list" class="matches-list"><p class="empty-state">Cargando partidos…</p></div>
+        <div class="section-heading">
+          <div><p class="eyebrow"><span class="eyebrow-line"></span> MATCH CENTER</p><h2>Partidos & <span>resultados</span></h2><p class="section-description">Calendario, marcadores y próximos enfrentamientos.</p></div>
+          <div class="match-filters" role="group" aria-label="Filtrar partidos">
+            <button class="filter-button active" data-match-filter="all">Todos</button>
+            <button class="filter-button" data-match-filter="upcoming">Pendientes</button>
+            <button class="filter-button" data-match-filter="played">Finalizados</button>
+          </div>
+        </div>
+        <div class="matches-grid" id="matches-list"><p class="empty-state">Cargando partidos…</p></div>
       </div>
     </section>
 
-    <section class="arena teams-section" id="equipos">
+    <section class="section teams-section" id="equipos">
       <div class="container">
-        <header class="section-head">
-          <p class="eyebrow">Nuestras escuadras</p>
-          <h2>Equipos de la liga</h2>
-          <p class="muted">La ficha pública de cada equipo está documentada en <a href="README.md#equipos-equiposjson">README</a>.</p>
-        </header>
-        <ul id="team-list" class="team-list team-grid"><li class="empty-state">Cargando equipos…</li></ul>
+        <div class="section-heading">
+          <div><p class="eyebrow"><span class="eyebrow-line"></span> ROSTER DIRECTORY</p><h2>Conoce a los <span>equipos</span></h2><p class="section-description">Escuadras, capitanes y jugadores que forman parte de la liga.</p></div>
+          <label class="search-box"><span>⌕</span><input type="search" id="team-search" placeholder="Buscar equipo o jugador…" aria-label="Buscar equipos"></label>
+        </div>
+        <div class="team-grid" id="team-list"><p class="empty-state">Cargando equipos…</p></div>
       </div>
     </section>
 
-    <section class="section community-section" id="comunidad">
-      <div class="container comunidad__grid">
-        <div class="comunidad__text">
-          <p class="eyebrow">Comunidad PHANTOM</p>
-          <h2>Tu gente está aquí.</h2>
-          <p>Encuentra compañeros, comparte estrategias y forma parte de una comunidad que vive el juego.</p>
-          <a href="https://discord.gg/HqdPqgUUj" class="btn btn--primary btn--lg" target="_blank" rel="noopener noreferrer">Unirme a Discord</a>
-        </div>
-        <div class="community-card">
-          <span class="feature-list__icon">✦</span>
-          <h3>Juega en equipo. Compite sin fronteras.</h3>
-          <p>Resultados públicos, reglas claras y una comunidad en crecimiento.</p>
-        </div>
-      </div>
-    </section>
-
-    <section class="faq" id="faq">
+    <section class="section stats-section" id="estadisticas">
       <div class="container">
-        <header class="section-head"><p class="eyebrow">Todo claro</p><h2>Preguntas frecuentes</h2></header>
-        <div class="accordion">
-          <details class="accordion__item"><summary>¿Cómo se calcula la clasificación?</summary><p>Una victoria suma 3 puntos, un empate 1 y una derrota 0. Los desempates se resuelven por diferencia de mapas y después por enfrentamiento directo.</p></details>
-          <details class="accordion__item"><summary>¿Dónde se actualizan los partidos?</summary><p>En <code>partidos.json</code> del repositorio. El administrador edita el archivo desde GitHub; la página lo consulta mediante la API pública de GitHub.</p></details>
-          <details class="accordion__item"><summary>¿Dónde se actualiza la lista de equipos?</summary><p>En <code>equipos.json</code>. Como los equipos cambian poco, la lista se mantiene como datos versionados en el repositorio.</p></details>
+        <div class="section-heading">
+          <div><p class="eyebrow"><span class="eyebrow-line"></span> DATA LAB</p><h2>La liga en <span>números</span></h2><p class="section-description">Un vistazo al rendimiento general y al estado de la competición.</p></div>
+        </div>
+        <div class="stats-cards">
+          <article class="stat-card"><span class="stat-icon">◈</span><span class="stat-label">EQUIPOS ACTIVOS</span><strong id="stat-teams">—</strong><small>Escuadras registradas</small></article>
+          <article class="stat-card"><span class="stat-icon">⌁</span><span class="stat-label">PARTIDOS JUGADOS</span><strong id="stat-played">—</strong><small id="stat-completion">Marcadores confirmados</small></article>
+          <article class="stat-card"><span class="stat-icon">⚔</span><span class="stat-label">MAPAS DISPUTADOS</span><strong id="stat-maps">—</strong><small>Entre todos los encuentros</small></article>
+          <article class="stat-card"><span class="stat-icon">◉</span><span class="stat-label">PROMEDIO DE MAPAS</span><strong id="stat-average">—</strong><small>Por partido finalizado</small></article>
+        </div>
+        <div class="stats-layout">
+          <div class="panel chart-panel"><div class="panel-top"><div><span class="panel-kicker">TEAM PERFORMANCE</span><h3>Top equipos por puntos</h3></div><span class="chart-symbol">▥</span></div><div id="points-chart" class="points-chart"><p class="empty-state">Esperando datos…</p></div></div>
+          <div class="panel insight-panel"><span class="panel-kicker">LEAGUE INSIGHT</span><h3>El estado de la arena</h3><div class="insight-row"><span>Partidos pendientes</span><strong id="insight-upcoming">—</strong></div><div class="insight-row"><span>Empates registrados</span><strong id="insight-draws">—</strong></div><div class="insight-row"><span>Equipo líder</span><strong id="insight-leader">—</strong></div><div class="insight-note">Las estadísticas se calculan automáticamente a partir de <code>equipos.json</code> y <code>partidos.json</code>.</div></div>
         </div>
       </div>
     </section>
-    <p id="page-status" class="page-status container" role="status" aria-live="polite"></p>
+
+    <section class="community-section">
+      <div class="container community-inner"><div><p class="eyebrow"><span class="eyebrow-line"></span> JOIN THE COMMUNITY</p><h2>Tu próxima victoria<br><span>empieza aquí.</span></h2><p>Forma parte de la comunidad, encuentra compañeros y sigue cada movimiento de la liga.</p></div><a class="button button-primary" href="https://discord.gg/HqdPqgUUj" target="_blank" rel="noopener noreferrer">Unirme a Discord <span>↗</span></a></div>
+    </section>
+
+    <section class="section admin-section" id="administracion">
+      <div class="container">
+        <div class="section-heading">
+          <div><p class="eyebrow"><span class="eyebrow-line"></span> LEAGUE CONTROL</p><h2>Panel de <span>administración</span></h2><p class="section-description">Prepara cambios de equipos y resultados sin compartir credenciales en el navegador.</p></div>
+          <span class="security-chip">⌑ SIN TOKENS EN EL FRONTEND</span>
+        </div>
+        <div class="admin-warning"><strong>Importante:</strong> este panel prepara y descarga archivos JSON en tu dispositivo; no publica cambios automáticamente. Después debes subir el archivo a GitHub y confirmar el commit. Así se mantienen los permisos y el historial del repositorio.</div>
+        <div class="admin-grid">
+          <form class="panel admin-form" id="match-form">
+            <div class="panel-top"><div><span class="panel-kicker">MATCH CONTROL</span><h3>Registrar partido</h3></div><span class="form-icon">⚔</span></div>
+            <label>ID único del partido<input name="matchId" placeholder="jornada-1-equipo-a-vs-equipo-b" required minlength="3"></label>
+            <div class="form-row"><label>Equipo local<select name="homeTeam" id="home-team" required><option value="">Cargando equipos…</option></select></label><label>Equipo visitante<select name="awayTeam" id="away-team" required><option value="">Cargando equipos…</option></select></label></div>
+            <label>Fecha del partido<input name="matchDate" type="date" required></label>
+            <div class="form-row"><label>Mapas local<input name="homeMaps" type="number" min="0" max="99" step="1" placeholder="Vacío = pendiente"></label><label>Mapas visitante<input name="awayMaps" type="number" min="0" max="99" step="1" placeholder="Vacío = pendiente"></label></div>
+            <p class="form-hint">Deja ambos marcadores vacíos para crear un partido pendiente. Si escribes uno, debes completar ambos.</p>
+            <button class="button button-primary button-full" type="submit">Preparar partido <span>＋</span></button>
+          </form>
+          <form class="panel admin-form" id="team-form">
+            <div class="panel-top"><div><span class="panel-kicker">ROSTER CONTROL</span><h3>Agregar equipo</h3></div><span class="form-icon">◈</span></div>
+            <label>ID único del equipo<input name="teamId" placeholder="nombre-del-equipo" required minlength="2"></label>
+            <label>Nombre del equipo<input name="teamName" placeholder="Nombre de la escuadra" required></label>
+            <label>Capitán<input name="captain" placeholder="Debe aparecer también en integrantes" required></label>
+            <label>Integrantes <small>(separados por comas)</small><textarea name="members" rows="3" placeholder="Jugador 1, Jugador 2, Jugador 3" required></textarea></label>
+            <div class="form-row"><label>Nombre en juego<input name="playerName" placeholder="Opcional"></label><label>Rango<input name="rank" placeholder="Opcional"></label></div>
+            <label>Logo HTTPS o ruta pública<input name="logo" placeholder="images/mi-equipo.png"></label>
+            <button class="button button-primary button-full" type="submit">Preparar equipo <span>＋</span></button>
+          </form>
+        </div>
+        <div class="panel export-panel">
+          <div class="panel-top"><div><span class="panel-kicker">EXPORT & PUBLISH</span><h3>Archivos listos para GitHub</h3></div><span class="form-icon">⇩</span></div>
+          <p class="section-description">Los cambios preparados se incorporan a los datos cargados. Descarga el archivo correspondiente y reemplaza el JSON en tu repositorio.</p>
+          <div class="export-actions"><button class="button button-outline" id="download-matches" type="button">Descargar partidos.json <span>↓</span></button><button class="button button-outline" id="download-teams" type="button">Descargar equipos.json <span>↓</span></button><a class="button button-primary" href="https://github.com/lordshadow-code/PHANTOM-LEAGUE" target="_blank" rel="noopener noreferrer">Abrir repositorio <span>↗</span></a></div>
+          <div id="admin-status" class="admin-status" role="status" aria-live="polite">Cargando datos del repositorio…</div>
+          <div class="github-edit-links"><a href="https://github.com/lordshadow-code/PHANTOM-LEAGUE/edit/main/partidos.json" target="_blank" rel="noopener noreferrer">Editar partidos.json directamente en GitHub ↗</a><a href="https://github.com/lordshadow-code/PHANTOM-LEAGUE/edit/main/equipos.json" target="_blank" rel="noopener noreferrer">Editar equipos.json directamente en GitHub ↗</a></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="faq-section">
+      <div class="container faq-inner"><div><p class="eyebrow"><span class="eyebrow-line"></span> RULEBOOK</p><h2>Reglas <span>claras.</span></h2><p class="section-description">Una clasificación transparente para toda la comunidad.</p></div><div class="faq-list"><details><summary>¿Cómo se calcula la clasificación?<span>＋</span></summary><p>Una victoria suma 3 puntos, un empate 1 y una derrota 0. Los desempates se resuelven por puntos, diferencia global de mapas, enfrentamiento directo entre los equipos igualados y diferencia de mapas en ese enfrentamiento. Si persiste el empate, se ordena por nombre.</p></details><details><summary>¿Cómo registro un resultado?<span>＋</span></summary><p>Usa el panel para preparar el partido, descarga partidos.json y súbelo al repositorio. También puedes editar el archivo directamente en GitHub. Los cambios publicados se reflejan cuando la web vuelve a cargar los datos.</p></details><details><summary>¿El panel publica automáticamente?<span>＋</span></summary><p>No. GitHub Pages es un alojamiento estático. Este panel genera archivos para que un colaborador autorizado los revise y confirme. No se guardan tokens de escritura ni contraseñas en el navegador.</p></details></div></div>
+    </section>
   </main>
 
-  <footer class="site-footer">
-    <div class="container footer__legal">
-      <p>© 2026 PHANTOM LEAGUE.</p>
-      <ul><li><a href="README.md">Documentación</a></li><li><a href="https://github.com/lordshadow-code/PHANTOM-LEAGUE" target="_blank" rel="noopener noreferrer">Repositorio</a></li></ul>
-      <span class="lang">🌐 ES · Español</span>
-    </div>
-  </footer>
-
-  <script>
-    (() => {
-      const repository = "lordshadow-code/PHANTOM-LEAGUE";
-      const branch = "main";
-      const apiBase = `https://api.github.com/repos/${repository}/contents`;
-
-      function decodeBase64Utf8(content) {
-        const binary = atob(content.replace(/\s/g, ""));
-        const bytes = Uint8Array.from(binary, (character) => character.charCodeAt(0));
-        return new TextDecoder().decode(bytes);
-      }
-
-      async function readRepositoryJson(filename) {
-        const response = await fetch(`${apiBase}/${filename}?ref=${branch}`, {
-          headers: {
-            Accept: "application/vnd.github+json",
-            "X-GitHub-Api-Version": "2022-11-28"
-          },
-          cache: "no-store"
-        });
-        if (!response.ok) {
-          if (response.status === 404) throw new Error(`${filename} no existe en la rama ${branch}.`);
-          if (response.status === 403) throw new Error("GitHub API limitó temporalmente las consultas. Inténtalo más tarde.");
-          throw new Error(`GitHub API no pudo leer ${filename} (HTTP ${response.status}).`);
-        }
-        const file = await response.json();
-        if (file.encoding !== "base64" || typeof file.content !== "string") {
-          throw new Error(`La respuesta de GitHub para ${filename} no tiene contenido Base64 válido.`);
-        }
-        try {
-          return JSON.parse(decodeBase64Utf8(file.content));
-        } catch (error) {
-          if (error instanceof SyntaxError) throw new Error(`${filename} no contiene JSON válido.`);
-          throw error;
-        }
-      }
-
-      function validateTeamsFile(value) {
-        if (!value || value.version !== 1 || !Array.isArray(value.teams)) {
-          throw new Error("equipos.json debe tener version: 1 y un arreglo teams.");
-        }
-        const ids = new Set();
-        value.teams.forEach((team, index) => {
-          if (!team || typeof team !== "object" || typeof team.id !== "string" ||
-            !team.id.trim() || typeof team.name !== "string" || !team.name.trim() ||
-            typeof team.captain !== "string" || !Array.isArray(team.members) ||
-            !team.members.length || team.members.length > 100 ||
-            !team.members.every((member) => typeof member === "string" && member.trim()) ||
-            new Set(team.members.map((member) => member.trim().toLowerCase())).size !== team.members.length ||
-            !team.members.some((member) => member.trim().toLowerCase() === team.captain.trim().toLowerCase())) {
-            throw new Error(`El equipo ${index + 1} de equipos.json tiene campos obligatorios inválidos.`);
-          }
-          if (ids.has(team.id)) throw new Error(`El ID de equipo "${team.id}" está duplicado.`);
-          ids.add(team.id);
-          if (team.active !== undefined && typeof team.active !== "boolean") {
-            throw new Error(`El campo active del equipo "${team.name}" debe ser true o false.`);
-          }
-          if (team.trackers !== undefined && (!team.trackers || typeof team.trackers !== "object" || Array.isArray(team.trackers))) {
-            throw new Error(`trackers del equipo "${team.name}" debe ser un objeto.`);
-          }
-          if (team.trackers) {
-            Object.entries(team.trackers).forEach(([member, tracker]) => {
-              let url;
-              try { url = new URL(tracker); } catch { url = null; }
-              if (!team.members.includes(member) || !url || !["http:", "https:"].includes(url.protocol)) {
-                throw new Error(`El Tracker de "${member}" en el equipo "${team.name}" no es válido.`);
-              }
-            });
-          }
-        });
-        return value.teams;
-      }
-
-      function validateMatchesFile(value, teams) {
-        if (!value || value.version !== 1 || !Array.isArray(value.matches)) {
-          throw new Error("partidos.json debe tener version: 1 y un arreglo matches.");
-        }
-        const ids = new Set();
-        const knownTeamIds = new Set(teams.map((team) => team.id));
-        value.matches.forEach((match, index) => {
-          const label = `El partido ${index + 1} de partidos.json`;
-          if (!match || typeof match !== "object" || typeof match.id !== "string" ||
-            !match.id.trim() || typeof match.homeTeamId !== "string" ||
-            typeof match.awayTeamId !== "string" || match.homeTeamId === match.awayTeamId ||
-            !knownTeamIds.has(match.homeTeamId) || !knownTeamIds.has(match.awayTeamId) ||
-            typeof match.date !== "string" || !/^\d{4}-\d{2}-\d{2}$/.test(match.date) ||
-            Number.isNaN(Date.parse(`${match.date}T00:00:00Z`)) ||
-            new Date(`${match.date}T00:00:00Z`).toISOString().slice(0, 10) !== match.date) {
-            throw new Error(`${label} tiene IDs, equipos o fecha inválidos.`);
-          }
-          if (ids.has(match.id)) throw new Error(`El ID de partido "${match.id}" está duplicado.`);
-          ids.add(match.id);
-          const pending = match.homeMaps === null && match.awayMaps === null;
-          const complete = Number.isSafeInteger(match.homeMaps) && match.homeMaps >= 0 && match.homeMaps <= 99 &&
-            Number.isSafeInteger(match.awayMaps) && match.awayMaps >= 0 && match.awayMaps <= 99;
-          if (!pending && !complete) throw new Error(`${label}: los dos marcadores deben ser enteros o ambos null.`);
-        });
-        return value.matches;
-      }
-
-      function calculateStandings(teams, matches) {
-        const activeTeams = teams.filter((team) => team.active !== false);
-        const stats = new Map(activeTeams.map((team) => [team.id, {
-          id: team.id, name: team.name, played: 0, wins: 0, draws: 0, losses: 0,
-          mapsFor: 0, mapsAgainst: 0, points: 0
-        }]));
-        const completed = matches.filter((match) => match.homeMaps !== null);
-        completed.forEach((match) => {
-          const home = stats.get(match.homeTeamId);
-          const away = stats.get(match.awayTeamId);
-          if (!home || !away) return;
-          home.played++; away.played++;
-          home.mapsFor += match.homeMaps; home.mapsAgainst += match.awayMaps;
-          away.mapsFor += match.awayMaps; away.mapsAgainst += match.homeMaps;
-          if (match.homeMaps > match.awayMaps) {
-            home.wins++; home.points += 3; away.losses++;
-          } else if (match.homeMaps < match.awayMaps) {
-            away.wins++; away.points += 3; home.losses++;
-          } else {
-            home.draws++; away.draws++; home.points++; away.points++;
-          }
-        });
-        const rows = [...stats.values()].map((row) => ({
-          ...row, mapDifference: row.mapsFor - row.mapsAgainst
-        })).sort((a, b) => b.points - a.points ||
-          b.mapDifference - a.mapDifference || a.name.localeCompare(b.name));
-
-        const standings = [];
-        for (let start = 0; start < rows.length;) {
-          let end = start + 1;
-          while (end < rows.length && rows[end].points === rows[start].points &&
-            rows[end].mapDifference === rows[start].mapDifference) end++;
-          const tied = rows.slice(start, end);
-          if (tied.length > 1) {
-            const headToHead = new Map(tied.map((team) => [team.id, { points: 0, diff: 0 }]));
-            completed.forEach((match) => {
-              const home = headToHead.get(match.homeTeamId);
-              const away = headToHead.get(match.awayTeamId);
-              if (!home || !away) return;
-              home.diff += match.homeMaps - match.awayMaps;
-              away.diff += match.awayMaps - match.homeMaps;
-              if (match.homeMaps > match.awayMaps) home.points += 3;
-              else if (match.homeMaps < match.awayMaps) away.points += 3;
-              else { home.points++; away.points++; }
-            });
-            tied.sort((a, b) => headToHead.get(b.id).points - headToHead.get(a.id).points ||
-              headToHead.get(b.id).diff - headToHead.get(a.id).diff ||
-              a.name.localeCompare(b.name));
-          }
-          standings.push(...tied);
-          start = end;
-        }
-        return { standings: standings.map((row, index) => ({ ...row, position: index + 1 })), played: completed.length };
-      }
-
-      function renderStandings(standings) {
-        const body = document.getElementById("standings-body");
-        body.replaceChildren();
-        if (!standings.length) {
-          body.innerHTML = '<tr><td colspan="9" class="empty-state">Todavía no hay equipos activos.</td></tr>';
-          return;
-        }
-        standings.forEach((team) => {
-          const row = document.createElement("tr");
-          [team.position, team.name, team.played, team.wins, team.draws, team.losses,
-            `${team.mapsFor}–${team.mapsAgainst}`,
-            `${team.mapDifference > 0 ? "+" : ""}${team.mapDifference}`, team.points].forEach((value) => {
-            const cell = document.createElement("td");
-            cell.textContent = value;
-            row.append(cell);
-          });
-          body.append(row);
-        });
-      }
-
-      function renderMatches(matches, teams) {
-        const container = document.getElementById("matches-list");
-        container.replaceChildren();
-        const teamNames = new Map(teams.map((team) => [team.id, team.name]));
-        const ordered = [...matches].sort((a, b) => a.date.localeCompare(b.date) || a.id.localeCompare(b.id));
-        if (!ordered.length) {
-          container.innerHTML = '<p class="empty-state">Todavía no hay partidos programados.</p>';
-          return;
-        }
-        ordered.forEach((match) => {
-          const card = document.createElement("article");
-          card.className = "match-card";
-          const date = document.createElement("time");
-          date.dateTime = match.date;
-          date.textContent = new Date(`${match.date}T00:00:00`).toLocaleDateString("es-ES", {
-            day: "numeric", month: "short", year: "numeric"
-          });
-          const fixture = document.createElement("strong");
-          fixture.className = "match-card__teams";
-          fixture.textContent = `${teamNames.get(match.homeTeamId)}  vs.  ${teamNames.get(match.awayTeamId)}`;
-          const result = document.createElement("span");
-          result.className = match.homeMaps === null ? "match-pending" : "match-score";
-          result.textContent = match.homeMaps === null ? "Pendiente" : `${match.homeMaps} : ${match.awayMaps}`;
-          card.append(date, fixture, result);
-          container.append(card);
-        });
-      }
-
-      function safePublicUrl(value) {
-        if (typeof value !== "string" || !value.trim()) return "";
-        try {
-          const url = new URL(value, window.location.href);
-          return ["http:", "https:"].includes(url.protocol) ? url.href : "";
-        } catch {
-          return "";
-        }
-      }
-
-      function renderTeams(teams) {
-        const list = document.getElementById("team-list");
-        list.replaceChildren();
-        const activeTeams = teams.filter((team) => team.active !== false);
-        if (!activeTeams.length) {
-          list.innerHTML = '<li class="empty-state">Todavía no hay equipos registrados.</li>';
-          return;
-        }
-        activeTeams.forEach((team) => {
-          const item = document.createElement("li");
-          item.className = "team-card";
-          const heading = document.createElement("div");
-          heading.className = "team-card__heading";
-          const logoUrl = safePublicUrl(team.logo);
-          if (logoUrl) {
-            const logo = document.createElement("img");
-            logo.className = "team-card__logo";
-            logo.src = logoUrl;
-            logo.alt = "";
-            logo.loading = "lazy";
-            heading.append(logo);
-          }
-          const name = document.createElement("h3");
-          name.textContent = team.name;
-          heading.append(name);
-          const captain = document.createElement("p");
-          captain.className = "muted";
-          captain.textContent = `Capitán: ${team.captain}`;
-          const members = document.createElement("p");
-          members.textContent = team.members.join(", ");
-          item.append(heading, captain, members);
-          if (typeof team.playerName === "string" && team.playerName.trim()) {
-            const player = document.createElement("p");
-            player.textContent = `Jugador: ${team.playerName}`;
-            item.append(player);
-          }
-          if (typeof team.rank === "string" && team.rank.trim()) {
-            const rank = document.createElement("p");
-            rank.textContent = `Rango: ${team.rank}`;
-            item.append(rank);
-          }
-          if (team.trackers && typeof team.trackers === "object") {
-            Object.entries(team.trackers).forEach(([member, value]) => {
-              const url = safePublicUrl(value);
-              if (!url || !team.members.includes(member)) return;
-              const tracker = document.createElement("a");
-              tracker.className = "team-tracker";
-              tracker.href = url;
-              tracker.target = "_blank";
-              tracker.rel = "noopener noreferrer";
-              tracker.textContent = `Tracker de ${member}`;
-              item.append(tracker);
-            });
-          }
-          list.append(item);
-        });
-      }
-
-      async function loadLeague() {
-        const status = document.getElementById("page-status");
-        try {
-          const [teamsFile, matchesFile] = await Promise.all([
-            readRepositoryJson("equipos.json"),
-            readRepositoryJson("partidos.json")
-          ]);
-          const teams = validateTeamsFile(teamsFile);
-          const matches = validateMatchesFile(matchesFile, teams);
-          const { standings, played } = calculateStandings(teams, matches);
-          document.getElementById("team-count").textContent = teams.filter((team) => team.active !== false).length;
-          document.getElementById("played-count").textContent = played;
-          renderStandings(standings);
-          renderMatches(matches, teams.filter((team) => team.active !== false));
-          renderTeams(teams);
-          status.textContent = "";
-        } catch (error) {
-          status.textContent = `No se pudo cargar la liga: ${error.message}`;
-          console.error("No se pudieron cargar los datos de GitHub:", error);
-          document.getElementById("standings-body").innerHTML =
-            '<tr><td colspan="9" class="empty-state">No se pudo cargar la clasificación.</td></tr>';
-          document.getElementById("matches-list").innerHTML =
-            '<p class="empty-state">No se pudieron cargar los partidos.</p>';
-          document.getElementById("team-list").innerHTML =
-            '<li class="empty-state">No se pudieron cargar los equipos.</li>';
-        }
-      }
-
-      loadLeague();
-    })();
-  </script>
+  <footer class="site-footer"><div class="container footer-inner"><a href="#inicio" class="brand footer-brand"><span class="brand-mark">P<span>✦</span></span><span class="brand-word">PHANTOM <b>LEAGUE</b><small>JUEGA · COMPITE · DESTACA</small></span></a><p>La arena es de quienes se atreven.</p><div class="footer-links"><a href="#clasificacion">Clasificación</a><a href="#administracion">Administración</a><a href="https://github.com/lordshadow-code/PHANTOM-LEAGUE" target="_blank" rel="noopener noreferrer">GitHub ↗</a></div><small class="copyright">© <span id="current-year"></span> PHANTOM LEAGUE · HECHO PARA COMPETIR</small></div></footer>
+  <div id="page-status" class="page-status" role="status" aria-live="polite"></div>
 </body>
 </html>

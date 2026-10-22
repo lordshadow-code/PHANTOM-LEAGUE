@@ -2,6 +2,22 @@
 
 Sitio público en GitHub Pages. Los equipos se mantienen como datos versionados en [`equipos.json`](./equipos.json), porque cambian rara vez. El calendario y sus resultados se mantienen en [`partidos.json`](./partidos.json). La página consulta ambos archivos usando la API pública de GitHub Contents; no requiere base de datos, Apps Script, login, claves API ni secretos en el navegador.
 
+## Archivos del proyecto
+
+- [`index.html`](./index.html): estructura de la web.
+- [`css/style.css`](./css/style.css): diseño adaptable con estilo esports negro y morado.
+- [`js/app.js`](./js/app.js): lectura de datos, clasificación, partidos, equipos, estadísticas y panel local de administración.
+- [`equipos.json`](./equipos.json) y [`partidos.json`](./partidos.json): datos públicos con el esquema `version: 1`.
+- [`images/`](./images/): recursos gráficos del sitio, como `trofeo-neon-arena.png`.
+
+## Panel de administración
+
+El panel permite preparar partidos y equipos en el navegador y descargar los archivos JSON actualizados. No publica cambios directamente en GitHub ni guarda tokens o credenciales. Revisa el archivo descargado y súbelo al repositorio con una cuenta autorizada. También puedes editar los archivos directamente en GitHub.
+
+## Ejecutar localmente
+
+Abre `index.html` con Live Server y conexión a Internet. La página obtiene los datos públicos mediante la API de GitHub.
+
 ## Cómo se actualizan los datos
 
 ### Equipos — `equipos.json`
@@ -19,7 +35,7 @@ Formato:
       "name": "Midnight Crew",
       "captain": "Nombre del capitán",
       "members": ["Jugador 1", "Jugador 2"],
-      "logo": "images/midnight-crew.svg",
+      "logo": "images/trofeo-neon-arena.png",
       "playerName": "Nombre de juego del capitán",
       "rank": "Rango actual",
       "trackers": {
@@ -34,7 +50,7 @@ Formato:
 
 Campos requeridos: `id` único, `name`, `captain` y `members` (lista de nombres). Los demás son opcionales:
 
-- `logo`: URL HTTPS o ruta pública del repositorio, por ejemplo `images/mi-equipo.svg`.
+- `logo`: URL HTTPS o ruta pública del repositorio, por ejemplo `images/mi-equipo.png`.
 - `playerName` y `rank`: texto que aparece en la ficha del equipo.
 - `trackers`: objeto con nombre de integrante como clave y URL HTTP(S) como valor.
 - `active`: `true` por defecto; usa `false` para conservar un equipo en el archivo pero ocultarlo del sitio y de la tabla.
@@ -77,12 +93,12 @@ Puntuación: victoria = 3 puntos, empate = 1 punto para cada equipo, derrota = 0
 - `index.html`: frontend público; lee los dos JSON desde `https://api.github.com/repos/lordshadow-code/PHANTOM-LEAGUE/contents/{archivo}?ref=main`.
 - `equipos.json`: lista pública de equipos.
 - `partidos.json`: calendario y resultados públicos.
-- `css/style.css` e `images/`: presentación del sitio.
+- `css/style.css`, `js/app.js` e `images/`: presentación y comportamiento del sitio.
 - `.github/workflows/pages.yml`: publicación de GitHub Pages al hacer push a `main`.
 
 La API de GitHub para repositorios públicos no usa token de lectura, pero tiene límite de solicitudes anónimas. El sitio hace una solicitud por cada JSON al cargar. Si el repositorio se vuelve privado o se agota el límite, aparecerá un error de lectura; no se publican datos locales como alternativa silenciosa.
 
-Las escrituras se hacen autenticándose en GitHub y confirmando un cambio en el repositorio. El botón del sitio abre la edición de `partidos.json`; GitHub aplica los permisos normales de colaboradores. No se incluye escritura API desde el navegador porque eso requeriría exponer una credencial con permiso de escritura.
+Los cambios se publican autenticándose en GitHub y confirmando un commit. El panel prepara descargas; los enlaces de edición permiten abrir los JSON en GitHub. No se incluye escritura API desde el navegador porque requeriría exponer una credencial con permiso de escritura.
 
 ## Migración desde los registros de equipos anteriores
 
