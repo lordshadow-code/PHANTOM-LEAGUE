@@ -111,3 +111,6 @@ Si todavía necesitas los equipos guardados en la tabla Supabase `phantom_teams`
 - No copies `discord_name`, `captain_user_id`, `invite_token` ni emails al archivo público.
 
 No se importan cuentas Discord, propiedad de capitán, sesiones ni enlaces de invitación antiguos: esta versión es pública y de solo lectura. Verifica la lista exportada antes de hacer commit.
+
+# Link pagina
+https://lordshadow-code.github.io/PHANTOM-LEAGUE/
